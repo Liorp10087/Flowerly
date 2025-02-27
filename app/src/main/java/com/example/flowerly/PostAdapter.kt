@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.flowerly.utils.loadImageResource
 
 class PostAdapter(
     private val posts: MutableList<Post>,
@@ -29,9 +30,9 @@ class PostAdapter(
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
         val post = posts[position]
-        holder.profileImageView.setImageResource(post.userProfileImageResId)
-        holder.usernameTextView.text = post.username
-        holder.imageView.setImageResource(post.imageResId)
+        holder.profileImageView.setImageResource(loadImageResource(post.user.profilePictureUrl))
+        holder.usernameTextView.text = post.user.username
+        holder.imageView.setImageResource(loadImageResource(post.imagePathUrl))
         holder.titleText.text = post.title
         holder.descText.text = post.description
 

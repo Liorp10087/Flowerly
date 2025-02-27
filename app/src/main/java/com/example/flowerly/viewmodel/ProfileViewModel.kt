@@ -2,22 +2,18 @@ package com.example.flowerly.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import com.example.flowerly.Post
-import com.example.flowerly.repository.PostRepository
+import com.example.flowerly.model.User
 import com.example.flowerly.repository.ProfileRepository
 
 class ProfileViewModel : ViewModel() {
-    private val postRepository = PostRepository()
-    private val profileRepository = ProfileRepository()
-
-    val username: LiveData<String> = profileRepository.getUsername()
-    val userPosts: LiveData<List<Post>> = postRepository.getUserPosts(username.value ?: "Mock User")
+    private val repository = ProfileRepository()
+    val user: LiveData<User> = repository.user
 
     fun updateUsername(newUsername: String) {
-        profileRepository.updateUsername(newUsername)
+        repository.updateUsername(newUsername)
     }
 
-    fun updateProfileImage(newImageUri: String) {
-        profileRepository.updateProfileImage(newImageUri)
-    }
+//    fun updateProfileImage(newImageUri: String) {
+//        repository.updateProfileImage(newImageUri)
+//    }
 }

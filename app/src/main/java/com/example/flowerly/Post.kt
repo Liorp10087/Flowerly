@@ -1,9 +1,12 @@
 package com.example.flowerly
 
+import com.example.flowerly.model.User
+
 data class Post(
-    val userProfileImageResId: Int,
-    val username: String,
-    val imageResId: Int,
-    val title: String,
-    val description: String
+    val id: String = "",
+    val imagePathUrl: String = "",
+    val title: String = "",
+    val description: String = "",
+    val user: User = User()
 )
+
