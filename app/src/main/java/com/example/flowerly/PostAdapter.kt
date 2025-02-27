@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.RecyclerView
 class PostAdapter(private val posts: List<Post>) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
 
     class PostViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val profileImageView: ImageView = view.findViewById(R.id.post_profile_image)
+        val usernameTextView: TextView = view.findViewById(R.id.post_username)
         val imageView: ImageView = view.findViewById(R.id.post_image)
         val nameText: TextView = view.findViewById(R.id.post_name)
         val descText: TextView = view.findViewById(R.id.post_description)
@@ -22,6 +24,8 @@ class PostAdapter(private val posts: List<Post>) : RecyclerView.Adapter<PostAdap
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
         val post = posts[position]
+        holder.profileImageView.setImageResource(post.userProfileImageResId)
+        holder.usernameTextView.text = post.username
         holder.imageView.setImageResource(post.imageResId)
         holder.nameText.text = post.name
         holder.descText.text = post.description

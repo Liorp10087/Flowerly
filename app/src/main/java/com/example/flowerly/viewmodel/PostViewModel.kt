@@ -16,9 +16,9 @@ class PostViewModel : ViewModel() {
 
     private fun loadPosts() {
         _posts.value = listOf(
-            Post(R.drawable.rose1, "Rose", "A beautiful red rose"),
-            Post(R.drawable.tulip, "Tulip", "Bright and colorful tulips"),
-            Post(R.drawable.rose2, "Sunflower", "Sunflowers follow the sun")
+            Post(R.drawable.ic_profile, "Alice", R.drawable.rose1, "Beautiful Rose", "A bright red rose"),
+            Post(R.drawable.ic_profile, "Bob", R.drawable.tulip, "Tulip Fields", "A garden full of tulips"),
+            Post(R.drawable.ic_profile, "Charlie", R.drawable.rose2, "Sunflowers Everywhere", "Sunflowers following the sun")
         )
     }
 }
