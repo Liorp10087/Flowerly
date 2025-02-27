@@ -4,6 +4,6 @@ data class Post(
     val userProfileImageResId: Int,
     val username: String,
     val imageResId: Int,
-    val name: String,
+    val title: String,
     val description: String
 )
