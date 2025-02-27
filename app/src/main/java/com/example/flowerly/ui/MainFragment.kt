@@ -8,12 +8,15 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.flowerly.R
+import com.example.flowerly.Post
 import com.example.flowerly.PostAdapter
+import com.example.flowerly.R
 import com.example.flowerly.viewmodel.PostViewModel
 
 class MainFragment : Fragment() {
     private lateinit var viewModel: PostViewModel
+    private lateinit var adapter: PostAdapter
+    private lateinit var recyclerView: RecyclerView
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -25,12 +28,16 @@ class MainFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val recyclerView: RecyclerView = view.findViewById(R.id.recycler_view)
+        recyclerView = view.findViewById(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         viewModel = ViewModelProvider(this).get(PostViewModel::class.java)
         viewModel.posts.observe(viewLifecycleOwner) { postList ->
-            recyclerView.adapter = PostAdapter(postList)
+            adapter = PostAdapter(postList.toMutableList(),
+                onDelete = { post -> viewModel.deletePost(post) },
+
+            )
+            recyclerView.adapter = adapter
         }
     }
 }
