@@ -4,21 +4,21 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.flowerly.Post
-import com.example.flowerly.R
+import com.example.flowerly.repository.PostRepository
 
 class PostViewModel : ViewModel() {
-    private val _posts = MutableLiveData<List<Post>>()
-    val posts: LiveData<List<Post>> = _posts
+    private val repository = PostRepository()
+    val posts: LiveData<List<Post>> = repository.getPosts()
 
-    init {
-        loadPosts()
+    fun getUserPosts(username: String): LiveData<List<Post>> {
+        return repository.getUserPosts(username)
     }
 
-    private fun loadPosts() {
-        _posts.value = listOf(
-            Post(R.drawable.rose1, "Rose", "A beautiful red rose"),
-            Post(R.drawable.tulip, "Tulip", "Bright and colorful tulips"),
-            Post(R.drawable.rose2, "Sunflower", "Sunflowers follow the sun")
-        )
+    fun deletePost(post: Post) {
+        repository.deletePost(post)
     }
+
+//    fun editPost(post: Post, newTitle: String, newDesc: String) {
+//        repository.editPost(post, newTitle, newDesc)
+//    }
 }
