@@ -18,16 +18,17 @@
         android:focusable="true"/>
 
     <!-- Username Display -->
+
+    <!-- Edit Username Input -->
     <TextView
         android:id="@+id/profile_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:text="Username"
         android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp" />
+        android:textStyle="bold" />
 
-    <!-- Edit Username Input -->
     <EditText
         android:id="@+id/edit_username"
         android:layout_width="match_parent"

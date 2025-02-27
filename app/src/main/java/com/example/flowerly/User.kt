@@ -1,7 +1,8 @@
 package com.example.flowerly.model
 
 data class User(
-    val userId: String,
-    val username: String,
-    val profileImageResId: Int
+    val id: String = "",
+    val username: String = "",
+    //TODO: check what is the best default value here
+    val profilePictureUrl: String = "ic_profile.png"
 )

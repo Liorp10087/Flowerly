@@ -36,12 +36,10 @@ class ProfileFragment : Fragment() {
         profileViewModel = ViewModelProvider(this).get(ProfileViewModel::class.java)
         postViewModel = ViewModelProvider(this).get(PostViewModel::class.java)
 
-        profileViewModel.username.observe(viewLifecycleOwner, Observer { username ->
-            if (!username.isNullOrEmpty()) {
-                postViewModel.getUserPosts(username).observe(viewLifecycleOwner, Observer { postList ->
-                    adapter = PostAdapter(postList.toMutableList(),
-                        onDelete = { post -> postViewModel.deletePost(post) }
-                    )
+        profileViewModel.user.observe(viewLifecycleOwner, Observer { user ->
+            user?.let {
+                postViewModel.getUserPosts(user.id).observe(viewLifecycleOwner, Observer { postList ->
+                    adapter = PostAdapter(postList.toMutableList()) { post -> postViewModel.deletePost(post) }
                     recyclerView.adapter = adapter
                 })
             }
