@@ -5,17 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flowerly.PostAdapter
 import com.example.flowerly.R
 import com.example.flowerly.viewmodel.PostViewModel
-import com.example.flowerly.viewmodel.ProfileViewModel
 
 class ProfileFragment : Fragment() {
-    private lateinit var profileViewModel: ProfileViewModel
     private lateinit var postViewModel: PostViewModel
     private lateinit var adapter: PostAdapter
     private lateinit var recyclerView: RecyclerView
@@ -33,16 +30,15 @@ class ProfileFragment : Fragment() {
         recyclerView = view.findViewById(R.id.user_posts_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        profileViewModel = ViewModelProvider(this).get(ProfileViewModel::class.java)
+        adapter = PostAdapter(mutableListOf()) { post -> postViewModel.deletePost(post) }
+        recyclerView.adapter = adapter
+
         postViewModel = ViewModelProvider(this).get(PostViewModel::class.java)
 
-        profileViewModel.user.observe(viewLifecycleOwner, Observer { user ->
-            user?.let {
-                postViewModel.getUserPosts(user.id).observe(viewLifecycleOwner, Observer { postList ->
-                    adapter = PostAdapter(postList.toMutableList()) { post -> postViewModel.deletePost(post) }
-                    recyclerView.adapter = adapter
-                })
-            }
-        })
+        val hardcodedUserId = "mlxtRRPv7p0ZFCtXIaIF"
+
+        postViewModel.getUserPosts(hardcodedUserId).observe(viewLifecycleOwner) { postList ->
+            adapter.updatePosts(postList)
+        }
     }
 }

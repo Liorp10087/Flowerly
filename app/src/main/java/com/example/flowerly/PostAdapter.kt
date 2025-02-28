@@ -38,10 +38,23 @@ class PostAdapter(
 
         holder.deleteButton.setOnClickListener {
             onDelete(post)
-            posts.removeAt(position)
-            notifyItemRemoved(position)
         }
     }
 
     override fun getItemCount(): Int = posts.size
+
+    fun updatePosts(newPosts: List<Post>) {
+        posts.clear()
+        posts.addAll(newPosts)
+        notifyDataSetChanged()
+    }
+
+    fun removePost(post: Post) {
+        val index = posts.indexOf(post)
+        if (index != -1) {
+            posts.removeAt(index)
+            notifyItemRemoved(index)
+        }
+    }
 }
+

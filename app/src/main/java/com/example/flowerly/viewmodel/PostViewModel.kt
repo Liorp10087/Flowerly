@@ -1,7 +1,6 @@
 package com.example.flowerly.viewmodel
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.flowerly.Post
 import com.example.flowerly.repository.PostRepository
@@ -10,8 +9,8 @@ class PostViewModel : ViewModel() {
     private val repository = PostRepository()
     val posts: LiveData<List<Post>> = repository.posts
 
-    fun getUserPosts(username: String): LiveData<List<Post>> {
-        return repository.getUserPosts(username)
+    fun getUserPosts(userId: String): LiveData<List<Post>> {
+        return repository.getUserPosts(userId)
     }
 
     fun deletePost(post: Post) {

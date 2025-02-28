@@ -1,11 +1,11 @@
 package com.example.flowerly.repository
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.flowerly.Post
 import com.example.flowerly.model.User
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.toObject
 
 class PostRepository {
     private val firestore = FirebaseFirestore.getInstance()
@@ -45,10 +45,6 @@ class PostRepository {
         }
     }
 
-
-
-
-
     fun addPost(post: Post) {
         val postData = hashMapOf(
             "id" to post.id,
@@ -69,12 +65,35 @@ class PostRepository {
         postsCollection.document(post.id).delete()
     }
 
-    fun getUserPosts(username: String): LiveData<List<Post>> {
-        val userPosts = MutableLiveData<List<Post>>()
-        _posts.value?.let { postList ->
-            userPosts.value = postList.filter { it.user.username == username }
-        }
-        return userPosts
+    fun getUserPosts(userId: String): LiveData<List<Post>> {
+        val userPostsLiveData = MutableLiveData<List<Post>>()
+        val userRef = FirebaseFirestore.getInstance().collection("users").document(userId) // 🔥 Create reference
+
+        postsCollection
+            .whereEqualTo("user", userRef)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val postList = snapshot.documents.mapNotNull { document ->
+                    val postData = document.data ?: return@mapNotNull null
+                    val userRef = document.getDocumentReference("user") ?: return@mapNotNull null
+
+                    Post(
+                        id = document.id,
+                        title = postData["title"] as? String ?: "",
+                        description = postData["description"] as? String ?: "",
+                        imagePathUrl = postData["imagePathUrl"] as? String ?: "",
+                        user = User(id = userRef.id)
+                    )
+                }
+
+                userPostsLiveData.value = postList
+            }
+            .addOnFailureListener { exception ->
+                Log.e("PostRepository", "Error fetching posts: ", exception)
+                userPostsLiveData.value = emptyList()
+            }
+
+        return userPostsLiveData
     }
 }
 
