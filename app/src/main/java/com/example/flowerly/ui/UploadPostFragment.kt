@@ -1,7 +1,5 @@
 package com.example.flowerly.ui
 
-import android.app.Activity
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -25,7 +23,7 @@ class UploadPostFragment : Fragment() {
     private val imagePickerResult =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             imageUri = uri
-            binding.imageView.setImageURI(imageUri) // Show the selected image in the ImageView
+            binding.imageView.setImageURI(imageUri)
         }
 
     override fun onCreateView(
@@ -33,11 +31,10 @@ class UploadPostFragment : Fragment() {
     ): View? {
         binding = FragmentUploadPostBinding.inflate(inflater, container, false)
 
-        // Hardcoded User
         val hardcodedUser = User(
-            id = "mlxtRRPv7p0ZFCtXIaIF",   // Hardcoded user ID
-            username = "Lior",              // Hardcoded username
-            profilePictureUrl = "rose1.jpg"  // Hardcoded profile picture URL
+            id = "mlxtRRPv7p0ZFCtXIaIF",
+            username = "Lior",
+            profilePictureUrl = "rose1.jpg"
         )
 
         binding.uploadButton.setOnClickListener {
@@ -49,21 +46,17 @@ class UploadPostFragment : Fragment() {
                     id = System.currentTimeMillis().toString(),
                     title = title,
                     description = description,
-                    imagePathUrl = "", // Initially empty, to be set after upload
+                    imagePathUrl = "",
                     user = hardcodedUser
                 )
 
-                // Add the post with image URI to the ViewModel
                 postViewModel.addPost(post, imageUri!!)
 
-                // Navigate back to the previous screen
                 findNavController().navigateUp()
-            } else {
-                // Handle case where no image is selected (optional)
+
             }
         }
 
-        // Open image picker when the ImageView is clicked
         binding.imageView.setOnClickListener {
             imagePickerResult.launch("image/*")
         }
