@@ -1,13 +1,20 @@
 package com.example.flowerly.utils
 
-import com.example.flowerly.R
+import android.widget.ImageView
+import com.google.firebase.storage.FirebaseStorage
+import com.squareup.picasso.Picasso
 
-fun loadImageResource(imageName: String): Int {
-    return when (imageName) {
-        "rose1.jpg" -> R.drawable.rose1
-        "tulip.jpg" -> R.drawable.tulip
-        "dandelion.jpg" -> R.drawable.dandelion
-        "ic_profile.png" -> R.drawable.ic_profile
-        else -> R.drawable.ic_profile
+fun loadImageFromFirebase(imageName: String, imageView: ImageView) {
+    if (imageName.isEmpty()) {
+        imageView.setImageResource(com.example.flowerly.R.drawable.ic_profile)
+        return
+    }
+
+    val storageRef = FirebaseStorage.getInstance().reference.child("images/$imageName")
+
+    storageRef.downloadUrl.addOnSuccessListener { uri ->
+        Picasso.get().load(uri).into(imageView)
+    }.addOnFailureListener {
+        imageView.setImageResource(com.example.flowerly.R.drawable.ic_profile) // Load default image if failed
     }
 }

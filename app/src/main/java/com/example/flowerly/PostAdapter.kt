@@ -7,7 +7,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.flowerly.utils.loadImageResource
+import com.example.flowerly.utils.loadImageFromFirebase
 
 class PostAdapter(
     private val posts: MutableList<Post>,
@@ -30,9 +30,11 @@ class PostAdapter(
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
         val post = posts[position]
-        holder.profileImageView.setImageResource(loadImageResource(post.user.profilePictureUrl))
+
+        loadImageFromFirebase(post.user.profilePictureUrl, holder.profileImageView)
+        loadImageFromFirebase(post.imagePathUrl, holder.imageView)
+
         holder.usernameTextView.text = post.user.username
-        holder.imageView.setImageResource(loadImageResource(post.imagePathUrl))
         holder.titleText.text = post.title
         holder.descText.text = post.description
 
@@ -57,4 +59,3 @@ class PostAdapter(
         }
     }
 }
-
