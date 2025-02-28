@@ -47,6 +47,8 @@ dependencies {
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-messaging")
+    implementation ("com.squareup.picasso:picasso:2.8")
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
