@@ -8,7 +8,7 @@ import com.example.flowerly.repository.PostRepository
 
 class PostViewModel : ViewModel() {
     private val repository = PostRepository()
-    val posts: LiveData<List<Post>> = repository.getPosts()
+    val posts: LiveData<List<Post>> = repository.posts
 
     fun getUserPosts(username: String): LiveData<List<Post>> {
         return repository.getUserPosts(username)
