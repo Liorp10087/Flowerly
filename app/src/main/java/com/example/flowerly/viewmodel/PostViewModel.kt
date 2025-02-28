@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
 import com.example.flowerly.Post
 import com.example.flowerly.repository.PostRepository
+import android.net.Uri
 
 class PostViewModel : ViewModel() {
     private val repository = PostRepository()
@@ -17,7 +18,7 @@ class PostViewModel : ViewModel() {
         repository.deletePost(post)
     }
 
-//    fun editPost(post: Post, newTitle: String, newDesc: String) {
-//        repository.editPost(post, newTitle, newDesc)
-//    }
+    fun addPost(post: Post, imageUri: Uri) {
+        repository.addPost(post, imageUri)
+    }
 }
