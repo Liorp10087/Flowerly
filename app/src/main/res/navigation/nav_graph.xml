@@ -8,11 +8,23 @@
         android:id="@+id/mainFragment"
         android:name="com.example.flowerly.ui.MainFragment"
         android:label="Main Feed"
-        tools:layout="@layout/fragment_main" />
+        tools:layout="@layout/fragment_main">
+        <!-- Add action to navigate to Upload Post fragment -->
+        <action
+            android:id="@+id/action_mainFragment_to_uploadPostFragment"
+            app:destination="@id/uploadPostFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.flowerly.ui.ProfileFragment"
         android:label="Profile"
         tools:layout="@layout/fragment_profile" />
+
+    <!-- Define the Upload Post Fragment -->
+    <fragment
+        android:id="@+id/uploadPostFragment"
+        android:name="com.example.flowerly.ui.UploadPostFragment"
+        android:label="Upload Post"
+        tools:layout="@layout/fragment_upload_post" />
 </navigation>
