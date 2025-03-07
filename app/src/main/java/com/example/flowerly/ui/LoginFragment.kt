@@ -6,31 +6,60 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.NavigationUI
 import com.example.flowerly.R
+import com.example.flowerly.database.AppDatabase
 import com.example.flowerly.databinding.FragmentLoginBinding
 import com.example.flowerly.viewmodel.AuthViewModel
+import com.example.flowerly.viewmodel.AuthViewModelFactory
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class LoginFragment : Fragment() {
-    private lateinit var viewModel: AuthViewModel
+
+    private val viewModel: AuthViewModel by viewModels {
+        AuthViewModelFactory(AppDatabase.getDatabase(requireContext()).userDao())
+    }
+
     private lateinit var binding: FragmentLoginBinding
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
         binding = FragmentLoginBinding.inflate(inflater, container, false)
-        viewModel = ViewModelProvider(this).get(AuthViewModel::class.java)
         binding.viewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val bottomNavigation = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigation.visibility = View.GONE
 
         viewModel.authResult.observe(viewLifecycleOwner) { success ->
-            if (success) findNavController().navigate(R.id.mainFragment)
-            else Toast.makeText(context, "Login failed", Toast.LENGTH_SHORT).show()
+            if (!success) {
+                Toast.makeText(context, "Incorrect email or password", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        viewModel.user.observe(viewLifecycleOwner) { user ->
+            if (user != null) {
+                bottomNavigation.visibility = View.VISIBLE
+                bottomNavigation.selectedItemId = R.id.nav_home
+
+                findNavController().navigate(R.id.mainFragment)
+            }
+        }
+
+        binding.btnLogin.setOnClickListener {
+            viewModel.login()
         }
 
         binding.btnNavigateToSignup.setOnClickListener {
             findNavController().navigate(R.id.signupFragment)
         }
-
-        return binding.root
     }
 }

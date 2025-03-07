@@ -18,8 +18,14 @@
         android:focusable="true"/>
 
     <!-- Username Display -->
+    <Button
+        android:id="@+id/logout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        android:layout_marginBottom="16dp" />
 
-    <!-- Edit Username Input -->
+    <!-- Username Display -->
     <TextView
         android:id="@+id/profile_name"
         android:layout_width="wrap_content"
@@ -29,6 +35,7 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
+    <!-- Edit Username Input -->
     <EditText
         android:id="@+id/edit_username"
         android:layout_width="match_parent"
