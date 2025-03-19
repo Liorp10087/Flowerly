@@ -6,7 +6,7 @@ import com.example.flowerly.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 
-class ProfileRepository {
+class UserRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private val _user = MutableLiveData<User>()
@@ -16,7 +16,7 @@ class ProfileRepository {
         fetchUserData()
     }
 
-    private fun fetchUserData() {
+     fun fetchUserData() {
         val currentUserId = auth.currentUser?.uid ?: return
         firestore.collection("users").document(currentUserId)
             .addSnapshotListener { snapshot, error ->

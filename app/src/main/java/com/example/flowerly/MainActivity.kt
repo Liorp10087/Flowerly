@@ -11,6 +11,7 @@ import com.example.flowerly.databinding.ActivityMainBinding
 import com.example.flowerly.viewmodel.AuthViewModel
 import com.example.flowerly.viewmodel.AuthViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
 
@@ -53,6 +54,11 @@ class MainActivity : AppCompatActivity() {
                     else -> false
                 }
             }
+        }
+
+        val fabUpload: FloatingActionButton = findViewById(R.id.fab_add)
+        fabUpload.setOnClickListener {
+            navController?.navigate(R.id.uploadPostFragment)
         }
     }
 }

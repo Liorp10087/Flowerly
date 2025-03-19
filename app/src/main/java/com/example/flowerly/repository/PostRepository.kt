@@ -1,14 +1,17 @@
 package com.example.flowerly.repository
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.flowerly.Post
 import com.example.flowerly.model.User
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
 
 class PostRepository {
     private val firestore = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance()
     private val postsCollection = firestore.collection("posts")
     private val _posts = MutableLiveData<List<Post>>()
     val posts: LiveData<List<Post>> get() = _posts
@@ -67,7 +70,7 @@ class PostRepository {
 
     fun getUserPosts(userId: String): LiveData<List<Post>> {
         val userPostsLiveData = MutableLiveData<List<Post>>()
-        val userRef = FirebaseFirestore.getInstance().collection("users").document(userId) // 🔥 Create reference
+        val userRef = FirebaseFirestore.getInstance().collection("users").document(userId)
 
         postsCollection
             .whereEqualTo("user", userRef)
@@ -96,4 +99,3 @@ class PostRepository {
         return userPostsLiveData
     }
 }
-
