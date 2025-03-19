@@ -48,21 +48,36 @@ class PostRepository {
         }
     }
 
-    fun addPost(post: Post) {
-        val postData = hashMapOf(
-            "id" to post.id,
-            "title" to post.title,
-            "description" to post.description,
-            "imagePathUrl" to post.imagePathUrl,
-            "user" to hashMapOf(
-                "id" to post.user.id,
-                "username" to post.user.username,
-                "profilePictureUrl" to post.user.profilePictureUrl
-            )
-        )
-
-        postsCollection.add(postData)
+    private fun uploadImageToStorage(imageUri: Uri, callback: (String?) -> Unit) {
+        val imageRef = storage.reference.child("images/${System.currentTimeMillis()}.jpg")
+        imageRef.putFile(imageUri)
+            .addOnSuccessListener { taskSnapshot ->
+                val fileName = imageRef.name
+                callback(fileName)
+            }
+            .addOnFailureListener {
+                callback(null)
+            }
     }
+
+    fun addPost(post: Post, imageUri: Uri) {
+        uploadImageToStorage(imageUri) { fileName ->
+            if (fileName != null) {
+                val postData = hashMapOf(
+                    "id" to post.id,
+                    "title" to post.title,
+                    "description" to post.description,
+                    "imagePathUrl" to fileName,
+                    "user" to firestore.collection("users").document(post.user.id)
+                )
+
+                postsCollection.add(postData)
+            } else {
+                Log.e("PostRepository", "Failed to upload image")
+            }
+        }
+    }
+
 
     fun deletePost(post: Post) {
         postsCollection.document(post.id).delete()
