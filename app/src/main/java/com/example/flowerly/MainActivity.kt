@@ -38,6 +38,10 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        if (authViewModel.user.value == null) {
+            navController?.navigate(R.id.loginFragment)
+        }
+
         navController?.let {
             bottomNavigation.setupWithNavController(it)
 

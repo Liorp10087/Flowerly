@@ -1,5 +1,6 @@
 package com.example.flowerly.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.*
 import com.example.flowerly.dao.UserDao
 import com.example.flowerly.model.User
@@ -90,6 +91,15 @@ class AuthViewModel(private val userDao: UserDao) : ViewModel() {
     fun logout() {
         auth.signOut()
         _authUser.postValue(null)
+    }
+
+    fun updateUsername(newUsername: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _authUser.value?.let { currentUser ->
+                userDao.updateUsername(currentUser.id, newUsername) // ✅ Only update the username
+                _authUser.postValue(currentUser.copy(username = newUsername)) // ✅ Update LiveData
+            }
+        }
     }
 
     private fun isValidEmail(email: String): Boolean {

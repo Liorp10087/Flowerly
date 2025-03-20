@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase
 import com.example.flowerly.dao.UserDao
 import com.example.flowerly.model.User
 
-@Database(entities = [User::class], version = 1, exportSchema = false)
+@Database(entities = [User::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
 
