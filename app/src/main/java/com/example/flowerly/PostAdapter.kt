@@ -13,7 +13,7 @@ import com.example.flowerly.utils.loadImageFromFirebase
 
 class PostAdapter(
     private val posts: MutableList<Post>,
-    private var userMap: Map<String, User> = emptyMap(), // ✅ Prevents null issues
+    private var userMap: Map<String, User> = emptyMap(),
     private val onDelete: (Post) -> Unit
 ) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
 
@@ -37,7 +37,7 @@ class PostAdapter(
         val user = userMap[post.userId] ?: User(
             id = post.userId,
             username = "Unknown User",
-            profilePictureUrl = "default_profile_image.png" // Replace with actual default
+            profilePictureUrl = "default_profile_image.png"
         )
 
         holder.usernameTextView.text = user.username

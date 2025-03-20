@@ -22,7 +22,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "app_database"
-                ).fallbackToDestructiveMigration() // Auto-upgrades database
+                ).fallbackToDestructiveMigration() 
                     .build()
                 INSTANCE = instance
                 instance

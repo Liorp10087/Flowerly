@@ -11,10 +11,10 @@ import com.example.flowerly.model.Post
 @Dao
 interface PostDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-     fun insertPost(post: Post) // ✅ Make sure this matches `Post.kt`
+     fun insertPost(post: Post)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-     fun insertPosts(posts: List<Post>) // ✅ Bulk insert
+     fun insertPosts(posts: List<Post>)
 
     @Query("SELECT * FROM posts ORDER BY id DESC")
     fun getAllPosts(): LiveData<List<Post>>
