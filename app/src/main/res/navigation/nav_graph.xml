@@ -5,6 +5,16 @@
     app:startDestination="@id/mainFragment">
 
     <fragment
+        android:id="@+id/loginFragment"
+        android:name="com.example.flowerly.ui.LoginFragment"
+        android:label="Login" />
+
+    <fragment
+        android:id="@+id/signupFragment"
+        android:name="com.example.flowerly.ui.SignupFragment"
+        android:label="Signup" />
+
+    <fragment
         android:id="@+id/mainFragment"
         android:name="com.example.flowerly.ui.MainFragment"
         android:label="Main Feed"

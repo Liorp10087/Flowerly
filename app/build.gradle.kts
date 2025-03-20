@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("kotlin-kapt")
 }
 
 android {
@@ -34,17 +35,21 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
-
     buildFeatures {
         viewBinding = true
+        dataBinding = true
     }
 }
 
 dependencies {
     // Firebase BoM (Bill of Materials)
     implementation(platform("com.google.firebase:firebase-bom:33.9.0"))
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation ("androidx.room:room-runtime:2.5.2")
+    implementation ("androidx.room:room-ktx:2.5.2")
 
-    // Required Firebase dependencies
+    kapt ("androidx.room:room-compiler:2.5.2")
+
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
@@ -52,7 +57,6 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-messaging")
     implementation ("com.squareup.picasso:picasso:2.8")
-
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
