@@ -9,7 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.example.flowerly.Post
+import com.example.flowerly.model.Post
 import com.example.flowerly.databinding.FragmentUploadPostBinding
 import com.example.flowerly.viewmodel.PostViewModel
 import com.example.flowerly.model.User
@@ -47,7 +47,7 @@ class UploadPostFragment : Fragment() {
                     title = title,
                     description = description,
                     imagePathUrl = "",
-                    user = hardcodedUser
+                    userId = hardcodedUser.id
                 )
 
                 postViewModel.addPost(post, imageUri!!)

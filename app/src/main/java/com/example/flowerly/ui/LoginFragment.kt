@@ -10,7 +10,7 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.NavigationUI
 import com.example.flowerly.R
-import com.example.flowerly.database.AppDatabase
+import com.example.flowerly.dao.AppDatabase
 import com.example.flowerly.databinding.FragmentLoginBinding
 import com.example.flowerly.viewmodel.AuthViewModel
 import com.example.flowerly.viewmodel.AuthViewModelFactory

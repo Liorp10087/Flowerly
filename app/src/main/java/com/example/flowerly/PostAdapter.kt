@@ -7,10 +7,13 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.flowerly.model.Post
+import com.example.flowerly.model.User
 import com.example.flowerly.utils.loadImageFromFirebase
 
 class PostAdapter(
     private val posts: MutableList<Post>,
+    private var userMap: Map<String, User> = emptyMap(), // ✅ Prevents null issues
     private val onDelete: (Post) -> Unit
 ) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
 
@@ -31,10 +34,17 @@ class PostAdapter(
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
         val post = posts[position]
 
-        loadImageFromFirebase(post.user.profilePictureUrl, holder.profileImageView)
+        val user = userMap[post.userId] ?: User(
+            id = post.userId,
+            username = "Unknown User",
+            profilePictureUrl = "default_profile_image.png" // Replace with actual default
+        )
+
+        holder.usernameTextView.text = user.username
+        loadImageFromFirebase(user.profilePictureUrl, holder.profileImageView)
+
         loadImageFromFirebase(post.imagePathUrl, holder.imageView)
 
-        holder.usernameTextView.text = post.user.username
         holder.titleText.text = post.title
         holder.descText.text = post.description
 
@@ -48,6 +58,11 @@ class PostAdapter(
     fun updatePosts(newPosts: List<Post>) {
         posts.clear()
         posts.addAll(newPosts)
+        notifyDataSetChanged()
+    }
+
+    fun updateUsers(newUserMap: Map<String, User>) {
+        this.userMap = newUserMap
         notifyDataSetChanged()
     }
 

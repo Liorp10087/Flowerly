@@ -1,48 +1,93 @@
 package com.example.flowerly.repository
 
+import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.example.flowerly.Post
+import com.example.flowerly.model.Post
+import com.example.flowerly.dao.PostDao
+import com.example.flowerly.dao.AppDatabase
 import com.example.flowerly.model.User
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-class PostRepository {
+class PostRepository(context: Context) {
     private val firestore = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
     private val postsCollection = firestore.collection("posts")
+    private val usersCollection = firestore.collection("users")
+
+    private val postDao: PostDao
+    private val coroutineScope = CoroutineScope(Dispatchers.IO)
+
     private val _posts = MutableLiveData<List<Post>>()
     val posts: LiveData<List<Post>> get() = _posts
 
     init {
-        fetchPosts()
+        val database = AppDatabase.getDatabase(context)
+        postDao = database.postDao()
+        fetchPostsFromFirestore()
     }
 
-    private fun fetchPosts() {
+    fun getAllPosts(): LiveData<List<Post>> = postDao.getAllPosts()
+
+    private fun fetchPostsFromFirestore() {
         postsCollection.get().addOnSuccessListener { snapshot ->
             val postList = mutableListOf<Post>()
+            val userIds = mutableSetOf<String>()
 
             snapshot.documents.forEach { document ->
-                val postData = document.data
-                if (postData != null) {
-                    val userRef = document.getDocumentReference("user")
+                val postData = document.data ?: return@forEach
+                val userRef = document.getDocumentReference("user")
 
-                    userRef?.get()?.addOnSuccessListener { userSnapshot ->
-                        val user = userSnapshot.toObject(User::class.java)
+                val post = Post(
+                    id = document.id,
+                    title = postData["title"] as? String ?: "",
+                    description = postData["description"] as? String ?: "",
+                    imagePathUrl = postData["imagePathUrl"] as? String ?: "",
+                    userId = userRef?.id ?: ""
+                )
 
-                        val post = Post(
-                            id = document.id,
-                            title = postData["title"] as? String ?: "",
-                            description = postData["description"] as? String ?: "",
-                            imagePathUrl = postData["imagePathUrl"] as? String ?: "",
-                            user = user ?: User()
-                        )
+                postList.add(post)
+                userRef?.id?.let { userIds.add(it) }
+            }
 
-                        postList.add(post)
-                        _posts.value = postList
-                    }
+            _posts.postValue(postList)
+            coroutineScope.launch {
+                postDao.insertPosts(postList)
+                fetchUsers(userIds)
+            }
+        }
+    }
+
+    private val _userDetails = MutableLiveData<Map<String, User>>()
+    val userDetails: LiveData<Map<String, User>> get() = _userDetails
+
+    private fun fetchUsers(userIds: Set<String>) {
+        val userMap = mutableMapOf<String, User>()
+
+        if (userIds.isEmpty()) {
+            _userDetails.postValue(userMap)
+            return
+        }
+
+        userIds.forEach { userId ->
+            usersCollection.document(userId).get().addOnSuccessListener { document ->
+                val user = document.toObject(User::class.java)
+                if (user != null) {
+                    userMap[userId] = user
+                }
+
+                if (userMap.size == userIds.size) {
+                    _userDetails.postValue(userMap)
+                }
+            }.addOnFailureListener {
+                if (userMap.size == userIds.size) {
+                    _userDetails.postValue(userMap)
                 }
             }
         }
@@ -61,17 +106,26 @@ class PostRepository {
     }
 
     fun addPost(post: Post, imageUri: Uri) {
-        uploadImageToStorage(imageUri) { fileName ->
-            if (fileName != null) {
+        uploadImageToStorage(imageUri) { imageUrl ->
+            if (imageUrl != null) {
+                val updatedPost = post.copy(imagePathUrl = imageUrl)
+
+                _posts.value = _posts.value?.toMutableList()?.apply { add(0, updatedPost) }
+
+                coroutineScope.launch { postDao.insertPost(updatedPost) }
+
                 val postData = hashMapOf(
                     "id" to post.id,
                     "title" to post.title,
                     "description" to post.description,
-                    "imagePathUrl" to fileName,
-                    "user" to firestore.collection("users").document(post.user.id)
+                    "imagePathUrl" to imageUrl,
+                    "user" to usersCollection.document(post.userId)
                 )
 
-                postsCollection.add(postData)
+                postsCollection.document(post.id).set(postData)
+                    .addOnFailureListener {
+                        Log.e("PostRepository", "Failed to add post to Firestore")
+                    }
             } else {
                 Log.e("PostRepository", "Failed to upload image")
             }
@@ -80,37 +134,14 @@ class PostRepository {
 
 
     fun deletePost(post: Post) {
-        postsCollection.document(post.id).delete()
+        postsCollection.document(post.id).delete().addOnSuccessListener {
+            coroutineScope.launch { postDao.deletePost(post) }
+        }.addOnFailureListener {
+            Log.e("PostRepository", "Failed to delete post from Firestore")
+        }
     }
 
     fun getUserPosts(userId: String): LiveData<List<Post>> {
-        val userPostsLiveData = MutableLiveData<List<Post>>()
-        val userRef = FirebaseFirestore.getInstance().collection("users").document(userId)
-
-        postsCollection
-            .whereEqualTo("user", userRef)
-            .get()
-            .addOnSuccessListener { snapshot ->
-                val postList = snapshot.documents.mapNotNull { document ->
-                    val postData = document.data ?: return@mapNotNull null
-                    val userRef = document.getDocumentReference("user") ?: return@mapNotNull null
-
-                    Post(
-                        id = document.id,
-                        title = postData["title"] as? String ?: "",
-                        description = postData["description"] as? String ?: "",
-                        imagePathUrl = postData["imagePathUrl"] as? String ?: "",
-                        user = User(id = userRef.id)
-                    )
-                }
-
-                userPostsLiveData.value = postList
-            }
-            .addOnFailureListener { exception ->
-                Log.e("PostRepository", "Error fetching posts: ", exception)
-                userPostsLiveData.value = emptyList()
-            }
-
-        return userPostsLiveData
+        return postDao.getUserPosts(userId)
     }
 }
