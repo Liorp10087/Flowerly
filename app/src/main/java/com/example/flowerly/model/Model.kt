@@ -8,6 +8,7 @@ import androidx.core.os.HandlerCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.flowerly.dao.AppLocalDatabase
+import com.google.firebase.auth.FirebaseUser
 import java.util.concurrent.Executors
 
 class Model private constructor() {
@@ -24,6 +25,10 @@ class Model private constructor() {
 
     companion object {
         val instance = Model()
+    }
+
+    fun getCurrentUser(): FirebaseUser? {
+        return firebase.getCurrentUser()
     }
 
     fun login(email: String, password: String, context: Context, callback: (Boolean) -> Unit) {
