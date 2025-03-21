@@ -3,8 +3,7 @@ package com.example.flowerly.model
 import android.content.Context
 import android.os.Looper
 import androidx.core.os.HandlerCompat
-import androidx.lifecycle.LiveData
-import com.example.travelshare.dao.AppLocalDatabase
+import com.example.flowerly.dao.AppLocalDatabase
 import java.util.concurrent.Executors
 
 class Model private constructor() {

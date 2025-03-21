@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.flowerly.model.Post
 import com.example.flowerly.dao.PostDao
+import com.example.flowerly.dao.AppLocalDatabase
 import com.example.flowerly.model.User
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 class PostRepository(context: Context) {
     private val firestore = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
+    private val db = AppLocalDatabase.db
     private val postsCollection = firestore.collection("posts")
     private val usersCollection = firestore.collection("users")
 
@@ -30,8 +32,7 @@ class PostRepository(context: Context) {
     val userDetails: LiveData<Map<String, User>> get() = _userDetails
 
     init {
-        val database = AppDatabase.getDatabase(context)
-        postDao = database.postDao()
+        postDao = db.postDao()
         fetchPostsFromFirestore()
     }
 
