@@ -4,14 +4,15 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
+    id("androidx.navigation.safeargs.kotlin")
     id("kotlin-kapt")
+    id("kotlin-parcelize")
 }
 
 val keystoreFile = project.rootProject.file("apikey.properties")
 val properties = Properties()
 properties.load(keystoreFile.inputStream())
 
-//return empty key in case something goes wrong
 val apiKey = properties.getProperty("OPENAI_API_KEY")
 
 if (apiKey.isNullOrEmpty()) {
@@ -91,6 +92,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
     implementation("androidx.recyclerview:recyclerview:1.2.1")
     implementation(libs.firebase.firestore.ktx)
+    implementation("androidx.navigation:navigation-fragment-ktx:2.5.0") // Make sure to use the latest version
+    implementation("androidx.navigation:navigation-ui-ktx:2.5.0") // Make sure to use the latest version
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

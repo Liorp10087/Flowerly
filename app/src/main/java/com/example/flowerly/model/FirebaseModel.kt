@@ -2,6 +2,7 @@ package com.example.flowerly.model
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LiveData
 import com.google.firebase.auth.FirebaseAuth
@@ -220,4 +221,25 @@ object FirebaseModel {
                 }
         }
     }
+
+    fun updatePostInFirestore(post: Post, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        val postData = hashMapOf(
+            "id" to post.id,
+            "title" to post.title,
+            "description" to post.description,
+            "imagePathUrl" to post.imagePathUrl,
+            "user" to db.collection("users").document(post.userId)
+        )
+
+        db.collection(POSTS_COLLECTION).document(post.id).set(postData)
+            .addOnSuccessListener {
+                onSuccess()
+                Log.d("FirebaseModel", "Post successfully updated in Firestore")
+            }
+            .addOnFailureListener {
+                onFailure()
+                Log.e("FirebaseModel", "Failed to update post in Firestore")
+            }
+    }
+
 }

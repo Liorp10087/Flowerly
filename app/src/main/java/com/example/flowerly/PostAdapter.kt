@@ -14,7 +14,8 @@ import com.example.flowerly.utils.loadImageFromFirebase
 class PostAdapter(
     private val posts: MutableList<Post>,
     private var userMap: Map<String, User> = emptyMap(),
-    private val onDelete: (Post) -> Unit
+    private val onDelete: (Post) -> Unit,
+    private val onEdit: (Post) -> Unit
 ) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
 
     class PostViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -24,6 +25,8 @@ class PostAdapter(
         val titleText: TextView = view.findViewById(R.id.post_title)
         val descText: TextView = view.findViewById(R.id.post_description)
         val deleteButton: Button = view.findViewById(R.id.delete_post_button)
+        val editButton: Button = view.findViewById(R.id.edit_post_button)
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
@@ -50,6 +53,10 @@ class PostAdapter(
 
         holder.deleteButton.setOnClickListener {
             onDelete(post)
+        }
+
+        holder.editButton.setOnClickListener {
+            onEdit(post)
         }
     }
 

@@ -124,4 +124,21 @@ class Model private constructor() {
             Log.e("Model", "Failed to delete post from Firestore")
         })
     }
+
+    fun updatePost(post: Post, imageUri: Uri?, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        if (imageUri != null) {
+            firebase.uploadImage(imageUri) { imageUrl ->
+                if (imageUrl != null) {
+                    val updatedPost = post.copy(imagePathUrl = imageUrl)
+                    firebase.updatePostInFirestore(updatedPost, onSuccess, onFailure)
+                } else {
+                    Log.e("Model", "Failed to upload image")
+                    onFailure()
+                }
+            }
+        } else {
+            firebase.updatePostInFirestore(post, onSuccess, onFailure)
+        }
+    }
+
 }
