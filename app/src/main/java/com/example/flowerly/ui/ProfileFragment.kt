@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flowerly.PostAdapter
 import com.example.flowerly.R
-import com.example.flowerly.database.AppDatabase
+import com.example.flowerly.dao.AppDatabase
 import com.example.flowerly.viewmodel.AuthViewModel
 import com.example.flowerly.viewmodel.AuthViewModelFactory
 import com.example.flowerly.viewmodel.PostViewModel

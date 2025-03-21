@@ -6,7 +6,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
-import com.example.flowerly.database.AppDatabase
+import com.example.flowerly.dao.AppDatabase
 import com.example.flowerly.databinding.ActivityMainBinding
 import com.example.flowerly.viewmodel.AuthViewModel
 import com.example.flowerly.viewmodel.AuthViewModelFactory

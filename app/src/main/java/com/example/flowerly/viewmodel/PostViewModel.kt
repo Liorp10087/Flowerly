@@ -1,14 +1,17 @@
 package com.example.flowerly.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
-import com.example.flowerly.Post
-import com.example.flowerly.repository.PostRepository
+import android.app.Application
 import android.net.Uri
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import com.example.flowerly.model.Post
+import com.example.flowerly.model.User
+import com.example.flowerly.repository.PostRepository
 
-class PostViewModel : ViewModel() {
-    private val repository = PostRepository()
-    val posts: LiveData<List<Post>> = repository.posts
+class PostViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = PostRepository(application)
+    val posts: LiveData<List<Post>> = repository.getAllPosts()
+    val userDetails: LiveData<Map<String, User>> = repository.userDetails
 
     fun getUserPosts(userId: String): LiveData<List<Post>> {
         return repository.getUserPosts(userId)

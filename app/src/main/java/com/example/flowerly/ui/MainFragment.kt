@@ -8,7 +8,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.flowerly.Post
 import com.example.flowerly.PostAdapter
 import com.example.flowerly.R
 import com.example.flowerly.viewmodel.PostViewModel
@@ -31,13 +30,26 @@ class MainFragment : Fragment() {
         recyclerView = view.findViewById(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        viewModel = ViewModelProvider(this).get(PostViewModel::class.java)
-        viewModel.posts.observe(viewLifecycleOwner) { postList ->
-            adapter = PostAdapter(postList.toMutableList(),
-                onDelete = { post -> viewModel.deletePost(post) },
+        adapter = PostAdapter(mutableListOf(), emptyMap(), onDelete = { post -> viewModel.deletePost(post) })
+        recyclerView.adapter = adapter
 
-            )
-            recyclerView.adapter = adapter
+        viewModel = ViewModelProvider(this).get(PostViewModel::class.java)
+
+        viewModel.posts.observe(viewLifecycleOwner) { postList ->
+            adapter.updatePosts(postList)
+
+//            if (postList.isEmpty()) {
+//                android.util.Log.d("RoomTest", "No posts found in Room database")
+//            } else {
+//                android.util.Log.d("RoomTest", "Posts from Room: ${postList.size}")
+//                postList.forEach { post ->
+//                    android.util.Log.d("RoomTest", "Post ID: ${post.id}, Title: ${post.title}, User ID: ${post.userId}")
+//                }
+//            }
+        }
+
+        viewModel.userDetails.observe(viewLifecycleOwner) { userMap ->
+            adapter.updateUsers(userMap)
         }
     }
 }
