@@ -48,7 +48,12 @@ class ProfileFragment : Fragment() {
         recyclerView = view.findViewById(R.id.user_posts_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        adapter = PostAdapter(mutableListOf()) { post -> postViewModel.deletePost(post) }
+        adapter = PostAdapter(mutableListOf(),emptyMap(), onDelete = { post ->
+            postViewModel.deletePost(post)
+        }, onEdit = { post ->
+            val action = MainFragmentDirections.actionMainFragmentToEditPostFragment(post)
+            findNavController().navigate(action)
+        })
         recyclerView.adapter = adapter
 
         userNameTextView = view.findViewById(R.id.profile_name)
@@ -95,9 +100,12 @@ class ProfileFragment : Fragment() {
         editUsername.setText(user.username)
 
         postViewModel.getUserPosts(user.id).observe(viewLifecycleOwner) { postList ->
-            adapter = PostAdapter(postList.toMutableList()) { post ->
+            adapter = PostAdapter(mutableListOf(),emptyMap(), onDelete = { post ->
                 postViewModel.deletePost(post)
-            }
+            }, onEdit = { post ->
+                val action = MainFragmentDirections.actionMainFragmentToEditPostFragment(post)
+                findNavController().navigate(action)
+            })
             recyclerView.adapter = adapter
         }
     }
