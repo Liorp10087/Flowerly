@@ -25,4 +25,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     fun addPost(post: Post, imageUri: Uri) {
         Model.instance.addPost(post, imageUri)
     }
+
+    fun updatePost(post: Post, imageUri: Uri?, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        Model.instance.updatePost(post, imageUri, {
+            onSuccess()
+        }, {
+            onFailure()
+        })
+    }
 }

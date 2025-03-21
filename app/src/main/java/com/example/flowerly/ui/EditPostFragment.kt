@@ -8,16 +8,18 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.fragment.findNavController
 import com.example.flowerly.databinding.FragmentEditPostBinding
-import com.example.flowerly.model.Model
 import com.example.flowerly.model.Post
 import com.example.flowerly.utils.loadImageFromFirebase
+import com.example.flowerly.viewmodel.PostViewModel
 
 class EditPostFragment : Fragment() {
     private lateinit var binding: FragmentEditPostBinding
     private val args: EditPostFragmentArgs by navArgs()
+    private val postViewModel: PostViewModel by viewModels()
     private var imageUri: Uri? = null
 
     private val imagePickerResult =
@@ -60,7 +62,7 @@ class EditPostFragment : Fragment() {
                 imagePathUrl = imageUri?.toString() ?: post.imagePathUrl
             )
 
-            Model.instance.updatePost(updatedPost, imageUri, {
+            postViewModel.updatePost(updatedPost, imageUri, {
                 findNavController().navigateUp()
             }, {
                 Log.e("EditPostFragment", "Failed to update post")

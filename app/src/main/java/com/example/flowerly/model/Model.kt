@@ -130,15 +130,28 @@ class Model private constructor() {
             firebase.uploadImage(imageUri) { imageUrl ->
                 if (imageUrl != null) {
                     val updatedPost = post.copy(imagePathUrl = imageUrl)
-                    firebase.updatePostInFirestore(updatedPost, onSuccess, onFailure)
+                    firebase.updatePostInFirestore(updatedPost, {
+                        executor.execute { db.postDao().updatePost(updatedPost) }
+                        onSuccess()
+                    }, {
+                        Log.e("Model", "Failed to update post in Firestore")
+                        onFailure()
+                    })
                 } else {
                     Log.e("Model", "Failed to upload image")
                     onFailure()
                 }
             }
         } else {
-            firebase.updatePostInFirestore(post, onSuccess, onFailure)
+            firebase.updatePostInFirestore(post, {
+                executor.execute { db.postDao().updatePost(post) }
+                onSuccess()
+            }, {
+                Log.e("Model", "Failed to update post in Firestore")
+                onFailure()
+            })
         }
     }
+
 
 }
