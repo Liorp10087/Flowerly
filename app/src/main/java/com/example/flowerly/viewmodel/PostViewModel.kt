@@ -4,6 +4,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import com.example.flowerly.model.Model
 import com.example.flowerly.model.Post
 import com.example.flowerly.model.User
 import com.example.flowerly.repository.PostRepository
@@ -14,14 +15,14 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val userDetails: LiveData<Map<String, User>> = repository.userDetails
 
     fun getUserPosts(userId: String): LiveData<List<Post>> {
-        return repository.getUserPosts(userId)
+        return Model.instance.getUserPosts(userId)
     }
 
     fun deletePost(post: Post) {
-        repository.deletePost(post)
+        Model.instance.deletePost(post)
     }
 
     fun addPost(post: Post, imageUri: Uri) {
-        repository.addPost(post, imageUri)
+        Model.instance.addPost(post, imageUri)
     }
 }
