@@ -15,18 +15,17 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flowerly.PostAdapter
 import com.example.flowerly.R
-import com.example.flowerly.database.AppDatabase
+import com.example.flowerly.model.FirebaseModel
+import com.example.flowerly.model.Model
 import com.example.flowerly.model.User
-import com.example.flowerly.viewmodel.AuthViewModel
-import com.example.flowerly.viewmodel.AuthViewModelFactory
 import com.example.flowerly.viewmodel.PostViewModel
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment() {
-    private val authViewModel: AuthViewModel by viewModels {
-        AuthViewModelFactory(AppDatabase.getDatabase(requireContext()).userDao())
-    }
     private val postViewModel: PostViewModel by viewModels()
+    private val firebaseModel = FirebaseModel
 
     private lateinit var adapter: PostAdapter
     private lateinit var recyclerView: RecyclerView
@@ -34,6 +33,7 @@ class ProfileFragment : Fragment() {
     private lateinit var editUsername: EditText
     private lateinit var saveUsernameButton: Button
     private lateinit var logoutButton: Button
+    private var user: User? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -56,30 +56,37 @@ class ProfileFragment : Fragment() {
         saveUsernameButton = view.findViewById(R.id.save_username_button)
         logoutButton = view.findViewById(R.id.logout)
 
-        authViewModel.user.observe(viewLifecycleOwner) { user ->
-            if (user == null) {
-                findNavController().navigate(R.id.loginFragment)
-            } else {
-                updateUI(user)
+        Firebase.auth.currentUser?.uid?.let {
+            FirebaseModel.getUserById(it) { user ->
+                this.user = user
+                if (user != null) {
+                    updateUI(user)
+                } else {
+                    findNavController().navigate(R.id.loginFragment)
+                }
             }
-        }
-
-        authViewModel.user.value?.let { user ->
-            updateUI(user)
         }
 
         saveUsernameButton.setOnClickListener {
             val newUsername = editUsername.text.toString().trim()
             if (newUsername.isNotEmpty()) {
                 lifecycleScope.launch {
-                    authViewModel.updateUsername(newUsername)
+                    updateUsername(newUsername)
                     editUsername.setText("")
                 }
             }
         }
 
         logoutButton.setOnClickListener {
-            authViewModel.logout()
+            firebaseModel.signOut()
+        }
+    }
+
+    private fun updateUsername(newUsername: String) {
+        user?.let {
+            Model.instance.updateUserUsername(it.id, newUsername, requireContext()) {
+                updateUI(it)
+            }
         }
     }
 

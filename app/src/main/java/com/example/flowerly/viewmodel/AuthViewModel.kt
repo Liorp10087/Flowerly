@@ -3,6 +3,7 @@ package com.example.flowerly.viewmodel
 import android.util.Log
 import androidx.lifecycle.*
 import com.example.flowerly.dao.UserDao
+import com.example.flowerly.model.Model
 import com.example.flowerly.model.User
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +15,7 @@ class AuthViewModel(private val userDao: UserDao) : ViewModel() {
     private val _authUser = MutableLiveData<User?>()
 
     val user: LiveData<User?> = _authUser.switchMap { authUser ->
-        authUser?.let { userDao.getUser(it.id) } ?: MutableLiveData(null)
+        authUser?.let { userDao. getUser(it.id) } ?: MutableLiveData(null)
     }
 
     val authResult = MutableLiveData<Boolean>()
@@ -29,9 +30,18 @@ class AuthViewModel(private val userDao: UserDao) : ViewModel() {
     private fun loadLocalUser() {
         viewModelScope.launch(Dispatchers.IO) {
             val firebaseUser = auth.currentUser ?: return@launch
-            _authUser.postValue(
-                User(firebaseUser.uid, firebaseUser.email ?: "Unknown User", "ic_profile.png")
-            )
+            val localUser = userDao.getUser(firebaseUser.uid)?.value
+            val allUsers = userDao.getAllUsers().value
+
+            Log.d("Tag", "Users $allUsers")
+
+            if (localUser != null) {
+                _authUser.postValue(localUser)
+            } else {
+                val user = User(firebaseUser.uid, firebaseUser.email ?: "Unknown User", "ic_profile.png")
+                saveUserLocally(user)
+                _authUser.postValue(user)
+            }
         }
     }
 
@@ -49,10 +59,10 @@ class AuthViewModel(private val userDao: UserDao) : ViewModel() {
                 if (task.isSuccessful) {
                     auth.currentUser?.let { firebaseUser ->
                         val newUser = User(firebaseUser.uid, firebaseUser.email.orEmpty(), "ic_profile.png")
-                        saveUserLocally(newUser)
                         _authUser.postValue(newUser)
                     }
                 }
+                Model.instance.refreshAllUsers()
                 authResult.value = task.isSuccessful
             }
     }

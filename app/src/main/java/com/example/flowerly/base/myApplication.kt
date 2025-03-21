@@ -1,4 +1,4 @@
-package com.example.travelshare.base
+package com.example.flowerly.base
 
 import android.app.Application
 import android.content.Context

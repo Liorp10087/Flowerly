@@ -1,32 +1,30 @@
-package com.example.flowerly.database
+package com.example.travelshare.dao
 
-import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.flowerly.base.MyApplication
 import com.example.flowerly.dao.UserDao
 import com.example.flowerly.model.User
 
-@Database(entities = [User::class], version = 2)
-abstract class AppDatabase : RoomDatabase() {
+@Database(entities = [User::class], version = 8)
+abstract class AppLocalDbRepository : RoomDatabase() {
     abstract fun userDao(): UserDao
-
-    companion object {
-        @Volatile
-        private var INSTANCE: AppDatabase? = null
-
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "app_database"
-                ).fallbackToDestructiveMigration()
-                    .build()
-                INSTANCE = instance
-                instance
-            }
-        }
-    }
 }
 
+object AppLocalDatabase {
+
+    val db: AppLocalDbRepository by lazy {
+
+        val context = MyApplication.Globals.appContext
+            ?: throw IllegalStateException("Application context not available")
+
+        Room.databaseBuilder(
+            context,
+            AppLocalDbRepository::class.java,
+            "dbFileName.db"
+        )
+            .fallbackToDestructiveMigration()
+            .build()
+    }
+}

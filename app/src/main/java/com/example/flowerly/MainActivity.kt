@@ -2,24 +2,17 @@ package com.example.flowerly
 
 import android.os.Bundle
 import android.view.View
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
-import com.example.flowerly.database.AppDatabase
 import com.example.flowerly.databinding.ActivityMainBinding
-import com.example.flowerly.viewmodel.AuthViewModel
-import com.example.flowerly.viewmodel.AuthViewModelFactory
+import com.example.flowerly.model.FirebaseModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-
-    private val authViewModel: AuthViewModel by viewModels {
-        AuthViewModelFactory(AppDatabase.getDatabase(this).userDao())
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,14 +24,15 @@ class MainActivity : AppCompatActivity() {
         val navController = navHostFragment?.navController
         val bottomNavigation: BottomNavigationView = binding.bottomNavigation
 
-        authViewModel.user.observe(this) { user ->
+        FirebaseModel.firebaseUserLiveData.observe(this) { user ->
             bottomNavigation.visibility = if (user == null) View.GONE else View.VISIBLE
             if (user == null) {
                 navController?.navigate(R.id.loginFragment)
             }
         }
 
-        if (authViewModel.user.value == null) {
+
+        if (FirebaseModel.getCurrentUser() == null) {
             navController?.navigate(R.id.loginFragment)
         }
 
