@@ -38,14 +38,6 @@ class MainFragment : Fragment() {
         viewModel.posts.observe(viewLifecycleOwner) { postList ->
             adapter.updatePosts(postList)
 
-//            if (postList.isEmpty()) {
-//                android.util.Log.d("RoomTest", "No posts found in Room database")
-//            } else {
-//                android.util.Log.d("RoomTest", "Posts from Room: ${postList.size}")
-//                postList.forEach { post ->
-//                    android.util.Log.d("RoomTest", "Post ID: ${post.id}, Title: ${post.title}, User ID: ${post.userId}")
-//                }
-//            }
         }
 
         viewModel.userDetails.observe(viewLifecycleOwner) { userMap ->

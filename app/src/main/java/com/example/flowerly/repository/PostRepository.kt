@@ -27,6 +27,9 @@ class PostRepository(context: Context) {
     private val _posts = MutableLiveData<List<Post>>()
     val posts: LiveData<List<Post>> get() = _posts
 
+    private val _userDetails = MutableLiveData<Map<String, User>>()
+    val userDetails: LiveData<Map<String, User>> get() = _userDetails
+
     init {
         val database = AppDatabase.getDatabase(context)
         postDao = database.postDao()
@@ -64,9 +67,6 @@ class PostRepository(context: Context) {
         }
     }
 
-    private val _userDetails = MutableLiveData<Map<String, User>>()
-    val userDetails: LiveData<Map<String, User>> get() = _userDetails
-
     private fun fetchUsers(userIds: Set<String>) {
         val userMap = mutableMapOf<String, User>()
 
@@ -95,15 +95,20 @@ class PostRepository(context: Context) {
 
     private fun uploadImageToStorage(imageUri: Uri, callback: (String?) -> Unit) {
         val imageRef = storage.reference.child("images/${System.currentTimeMillis()}.jpg")
+
         imageRef.putFile(imageUri)
-            .addOnSuccessListener { taskSnapshot ->
-                val fileName = imageRef.name
-                callback(fileName)
+            .addOnSuccessListener {
+                imageRef.downloadUrl.addOnSuccessListener { uri ->
+                    callback(uri.toString())
+                }.addOnFailureListener {
+                    callback(null)
+                }
             }
             .addOnFailureListener {
                 callback(null)
             }
     }
+
 
     fun addPost(post: Post, imageUri: Uri) {
         uploadImageToStorage(imageUri) { imageUrl ->
