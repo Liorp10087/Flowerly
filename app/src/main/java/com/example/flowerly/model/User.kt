@@ -5,9 +5,9 @@ import androidx.room.PrimaryKey
 
 @Entity
 data class User(
-    @PrimaryKey var id: String,
-    var username: String,
-    var profilePictureUrl: String,
+    @PrimaryKey var id: String = "",
+    var username: String = "",
+    var profilePictureUrl: String = "",
 ) {
 
     companion object {

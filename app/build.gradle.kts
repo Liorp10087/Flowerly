@@ -1,8 +1,21 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
     id("kotlin-kapt")
+}
+
+val keystoreFile = project.rootProject.file("apikey.properties")
+val properties = Properties()
+properties.load(keystoreFile.inputStream())
+
+//return empty key in case something goes wrong
+val apiKey = properties.getProperty("OPENAI_API_KEY")
+
+if (apiKey.isNullOrEmpty()) {
+    throw GradleException("OPENAI_API_KEY not found in apikey.properties. Please add it.")
 }
 
 android {
@@ -16,7 +29,12 @@ android {
         versionCode = 1
         versionName = "1.0"
 
+
+
+        buildConfigField("String", "OPENAI_API_KEY", "\"$apiKey\"")
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
     buildTypes {
@@ -36,6 +54,7 @@ android {
         jvmTarget = "11"
     }
     buildFeatures {
+        buildConfig = true
         viewBinding = true
         dataBinding = true
     }
@@ -47,6 +66,7 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation ("androidx.room:room-runtime:2.5.2")
     implementation ("androidx.room:room-ktx:2.5.2")
+    implementation(libs.transport.api)
 
     kapt ("androidx.room:room-compiler:2.5.2")
 
@@ -57,6 +77,10 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-messaging")
     implementation ("com.squareup.picasso:picasso:2.8")
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation("com.squareup.okhttp3:okhttp:4.9.0")
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
