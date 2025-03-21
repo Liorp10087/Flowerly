@@ -1,6 +1,7 @@
 package com.example.flowerly.model
 
 import android.content.Context
+import android.net.Uri
 import android.widget.Toast
 import androidx.lifecycle.LiveData
 import com.google.firebase.auth.FirebaseAuth
@@ -8,11 +9,14 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.storage.FirebaseStorage
 
 object FirebaseModel {
     private val db by lazy { Firebase.firestore }
     private const val USERS_COLLECTION = "users"
+    private const val POSTS_COLLECTION = "posts"
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private val storage = FirebaseStorage.getInstance()
 
     init {
         val settings = FirebaseFirestoreSettings.Builder()
@@ -152,5 +156,68 @@ object FirebaseModel {
 
     private fun showToast(context: Context, message: String) {
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
+    fun getAllPosts(callback: (List<Post>, Set<String>) -> Unit) {
+        db.collection(POSTS_COLLECTION).get().addOnSuccessListener { snapshot ->
+            val posts = mutableListOf<Post>()
+            val userIds = mutableSetOf<String>()
+            snapshot.documents.forEach { doc ->
+                val data = doc.data ?: return@forEach
+                val userRef = doc.getDocumentReference("user")
+                posts.add(Post(
+                    id = doc.id,
+                    title = data["title"] as? String ?: "",
+                    description = data["description"] as? String ?: "",
+                    imagePathUrl = data["imagePathUrl"] as? String ?: "",
+                    userId = userRef?.id ?: ""
+                ))
+                userRef?.id?.let { userIds.add(it) }
+            }
+            callback(posts, userIds)
+        }
+    }
+
+    fun uploadImage(imageUri: Uri, onComplete: (String?) -> Unit) {
+        val ref = storage.reference.child("images/${System.currentTimeMillis()}.jpg")
+        ref.putFile(imageUri)
+            .addOnSuccessListener { ref.downloadUrl.addOnSuccessListener { uri -> onComplete(uri.toString()) } }
+            .addOnFailureListener { onComplete(null) }
+    }
+
+    fun addPostToFirestore(post: Post, onFailure: () -> Unit) {
+        val postData = hashMapOf(
+            "id" to post.id,
+            "title" to post.title,
+            "description" to post.description,
+            "imagePathUrl" to post.imagePathUrl,
+            "user" to db.collection("users").document(post.userId)
+        )
+        db.collection(POSTS_COLLECTION).document(post.id).set(postData)
+            .addOnFailureListener { onFailure() }
+    }
+
+    fun deletePostFromFirestore(postId: String, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        db.collection(POSTS_COLLECTION).document(postId).delete()
+            .addOnSuccessListener { onSuccess() }
+            .addOnFailureListener { onFailure() }
+    }
+
+    fun getUsersByIds(ids: Set<String>, callback: (Map<String, User>) -> Unit) {
+        val userMap = mutableMapOf<String, User>()
+        if (ids.isEmpty()) {
+            callback(userMap)
+            return
+        }
+        ids.forEach { id ->
+            db.collection(USERS_COLLECTION).document(id).get()
+                .addOnSuccessListener { doc ->
+                    doc.toObject(User::class.java)?.let { userMap[id] = it }
+                    if (userMap.size == ids.size) callback(userMap)
+                }
+                .addOnFailureListener {
+                    if (userMap.size == ids.size) callback(userMap)
+                }
+        }
     }
 }

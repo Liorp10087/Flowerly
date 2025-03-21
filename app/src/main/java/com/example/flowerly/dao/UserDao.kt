@@ -16,7 +16,7 @@ interface UserDao {
     fun getAllUsers(): LiveData<List<User>>
 
     @Query("SELECT * FROM User WHERE id = :userId LIMIT 1")
-    fun getUser(userId: String): LiveData<User?>?
+    fun getUser(userId: String): LiveData<User?>
 
     @Query("UPDATE User SET username = :newUsername WHERE id = :userId")
     fun updateUsername(userId: String, newUsername: String)
