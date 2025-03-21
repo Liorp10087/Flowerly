@@ -34,10 +34,17 @@ class Model private constructor() {
     fun login(email: String, password: String, context: Context, callback: (Boolean) -> Unit) {
         firebase.signIn(context, email, password) { success, user ->
             if (success && user != null) {
-                val newUser = User(user.uid, user.email ?: "", "ic_profile.png")
-                addUserToLocalAndFirebase(newUser)
+                firebase.getUserById(user.uid) { fetchedUser ->
+                    if (fetchedUser != null) {
+                        executor.execute {
+                            db.userDao().insertUser(fetchedUser)
+                        }
+                    }
+                    callback(fetchedUser != null)
+                }
+            } else {
+                callback(false)
             }
-            callback(success)
         }
     }
 
@@ -77,15 +84,13 @@ class Model private constructor() {
         }
     }
 
-    fun refreshAllUsers() {
+    private fun refreshAllUsers() {
         firebase.getAllUsers { users ->
             executor.execute {
                 users.forEach { db.userDao().insertUser(it) }
             }
         }
     }
-
-    fun getAllPosts(): LiveData<List<Post>> = db.postDao().getAllPosts()
 
     fun getUserPosts(userId: String): LiveData<List<Post>> = db.postDao().getUserPosts(userId)
 
