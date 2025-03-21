@@ -25,5 +25,3 @@ interface PostDao {
     @Delete
      fun deletePost(post: Post)
 }
-
-

@@ -83,9 +83,14 @@ class ProfileFragment : Fragment() {
     }
 
     private fun updateUsername(newUsername: String) {
-        user?.let {
-            Model.instance.updateUserUsername(it.id, newUsername, requireContext()) {
-                updateUI(it)
+        user?.let { currentUser ->
+            Model.instance.updateUserUsername(currentUser.id, newUsername, requireContext()) {
+                FirebaseModel.getUserById(currentUser.id) { updatedUser ->
+                    if (updatedUser != null) {
+                        user = updatedUser
+                        updateUI(updatedUser)
+                    }
+                }
             }
         }
     }
