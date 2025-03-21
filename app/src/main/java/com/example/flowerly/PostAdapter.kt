@@ -7,6 +7,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.flowerly.model.FirebaseModel
 import com.example.flowerly.model.Post
 import com.example.flowerly.model.User
 import com.example.flowerly.utils.loadImageFromFirebase
@@ -51,6 +52,16 @@ class PostAdapter(
         holder.titleText.text = post.title
         holder.descText.text = post.description
 
+        val currentUserId = FirebaseModel.getCurrentUser()?.uid
+
+        if (post.userId == currentUserId) {
+            holder.deleteButton.visibility = View.VISIBLE
+            holder.editButton.visibility = View.VISIBLE
+        } else {
+            holder.deleteButton.visibility = View.GONE
+            holder.editButton.visibility = View.GONE
+        }
+
         holder.deleteButton.setOnClickListener {
             onDelete(post)
         }
@@ -59,6 +70,7 @@ class PostAdapter(
             onEdit(post)
         }
     }
+
 
     override fun getItemCount(): Int = posts.size
 
@@ -73,11 +85,4 @@ class PostAdapter(
         notifyDataSetChanged()
     }
 
-    fun removePost(post: Post) {
-        val index = posts.indexOf(post)
-        if (index != -1) {
-            posts.removeAt(index)
-            notifyItemRemoved(index)
-        }
-    }
 }

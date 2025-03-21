@@ -8,15 +8,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.flowerly.OpenAIClient
 import com.example.flowerly.databinding.FragmentUploadPostBinding
 import com.example.flowerly.model.Post
 import com.example.flowerly.model.Model
+import com.example.flowerly.viewmodel.PostViewModel
 
 class UploadPostFragment : Fragment() {
     private lateinit var binding: FragmentUploadPostBinding
     private var imageUri: Uri? = null
+    private val postViewModel: PostViewModel by viewModels()
+
 
     private val imagePickerResult =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
@@ -78,11 +82,11 @@ class UploadPostFragment : Fragment() {
                 id = System.currentTimeMillis().toString(),
                 title = title,
                 description = description,
-                imagePathUrl = "", // filled in after upload
+                imagePathUrl = "",
                 userId = currentUser.uid
             )
 
-            Model.instance.addPost(post, selectedImageUri)
+            postViewModel.addPost(post, selectedImageUri)
             findNavController().navigateUp()
         }
     }
