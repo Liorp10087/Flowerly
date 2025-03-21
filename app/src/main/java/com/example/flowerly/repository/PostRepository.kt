@@ -7,7 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.flowerly.model.Post
 import com.example.flowerly.dao.PostDao
-import com.example.flowerly.dao.AppDatabase
+import com.example.flowerly.dao.AppLocalDatabase
 import com.example.flowerly.model.User
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 class PostRepository(context: Context) {
     private val firestore = FirebaseFirestore.getInstance()
     private val storage = FirebaseStorage.getInstance()
+    private val db = AppLocalDatabase.db
     private val postsCollection = firestore.collection("posts")
     private val usersCollection = firestore.collection("users")
 
@@ -31,8 +32,7 @@ class PostRepository(context: Context) {
     val userDetails: LiveData<Map<String, User>> get() = _userDetails
 
     init {
-        val database = AppDatabase.getDatabase(context)
-        postDao = database.postDao()
+        postDao = db.postDao()
         fetchPostsFromFirestore()
     }
 
@@ -91,62 +91,5 @@ class PostRepository(context: Context) {
                 }
             }
         }
-    }
-
-    private fun uploadImageToStorage(imageUri: Uri, callback: (String?) -> Unit) {
-        val imageRef = storage.reference.child("images/${System.currentTimeMillis()}.jpg")
-
-        imageRef.putFile(imageUri)
-            .addOnSuccessListener {
-                imageRef.downloadUrl.addOnSuccessListener { uri ->
-                    callback(uri.toString())
-                }.addOnFailureListener {
-                    callback(null)
-                }
-            }
-            .addOnFailureListener {
-                callback(null)
-            }
-    }
-
-
-    fun addPost(post: Post, imageUri: Uri) {
-        uploadImageToStorage(imageUri) { imageUrl ->
-            if (imageUrl != null) {
-                val updatedPost = post.copy(imagePathUrl = imageUrl)
-
-                _posts.value = _posts.value?.toMutableList()?.apply { add(0, updatedPost) }
-
-                coroutineScope.launch { postDao.insertPost(updatedPost) }
-
-                val postData = hashMapOf(
-                    "id" to post.id,
-                    "title" to post.title,
-                    "description" to post.description,
-                    "imagePathUrl" to imageUrl,
-                    "user" to usersCollection.document(post.userId)
-                )
-
-                postsCollection.document(post.id).set(postData)
-                    .addOnFailureListener {
-                        Log.e("PostRepository", "Failed to add post to Firestore")
-                    }
-            } else {
-                Log.e("PostRepository", "Failed to upload image")
-            }
-        }
-    }
-
-
-    fun deletePost(post: Post) {
-        postsCollection.document(post.id).delete().addOnSuccessListener {
-            coroutineScope.launch { postDao.deletePost(post) }
-        }.addOnFailureListener {
-            Log.e("PostRepository", "Failed to delete post from Firestore")
-        }
-    }
-
-    fun getUserPosts(userId: String): LiveData<List<Post>> {
-        return postDao.getUserPosts(userId)
     }
 }

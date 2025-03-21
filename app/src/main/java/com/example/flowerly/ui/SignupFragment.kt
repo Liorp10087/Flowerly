@@ -6,26 +6,21 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.flowerly.R
-import com.example.flowerly.dao.AppDatabase
 import com.example.flowerly.databinding.FragmentSignupBinding
-import com.example.flowerly.viewmodel.AuthViewModel
-import com.example.flowerly.viewmodel.AuthViewModelFactory
+import com.example.flowerly.model.Model
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class SignupFragment : Fragment() {
 
-    private val viewModel: AuthViewModel by viewModels {
-        AuthViewModelFactory(AppDatabase.getDatabase(requireContext()).userDao())
-    }
-
     private lateinit var binding: FragmentSignupBinding
+    private lateinit var bottomNavigation: BottomNavigationView
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View {
         binding = FragmentSignupBinding.inflate(inflater, container, false)
-        binding.viewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
         return binding.root
     }
@@ -33,26 +28,56 @@ class SignupFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val bottomNavigation = requireActivity().findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        bottomNavigation = requireActivity().findViewById(R.id.bottom_navigation)
         bottomNavigation.visibility = View.GONE
 
-        viewModel.validationMessage.observe(viewLifecycleOwner) { message ->
-            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        binding.btnSignup.setOnClickListener {
+            handleSignup()
+        }
+    }
+
+    private fun handleSignup() {
+        val email = binding.etEmail.text.toString().trim()
+        val password = binding.etPassword.text.toString()
+
+        if (!isValidEmail(email)) {
+            showToast("Invalid email format")
+            return
         }
 
-        viewModel.authResult.observe(viewLifecycleOwner) { success ->
-            if (success) {
-                bottomNavigation.visibility = View.VISIBLE
-                bottomNavigation.selectedItemId = R.id.nav_home
+        if (password.length < 6) {
+            showToast("Password must be at least 6 characters")
+            return
+        }
 
-                findNavController().navigate(R.id.mainFragment)
+        performSignup(email, password)
+    }
+
+    private fun isValidEmail(email: String): Boolean {
+        return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
+
+    private fun performSignup(email: String, password: String) {
+        Model.instance.signup(email, password, requireContext()) { success ->
+            if (success) {
+                showBottomNav()
+                navigateToMain()
             } else {
-                Toast.makeText(context, "Signup failed", Toast.LENGTH_SHORT).show()
+                showToast("Signup failed")
             }
         }
+    }
 
-        binding.btnSignup.setOnClickListener {
-            viewModel.validateAndSignup()
-        }
+    private fun showBottomNav() {
+        bottomNavigation.visibility = View.VISIBLE
+        bottomNavigation.selectedItemId = R.id.nav_home
+    }
+
+    private fun navigateToMain() {
+        findNavController().navigate(R.id.mainFragment)
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
     }
 }
