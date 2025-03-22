@@ -10,6 +10,7 @@ data class User(
     var profilePictureUrl: String = "",
     var isCurrentUser: Boolean = false
 ) {
+    constructor() : this("", "", "ic_profile.png")
 
     companion object {
 

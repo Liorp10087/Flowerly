@@ -3,13 +3,9 @@ package com.example.flowerly.ui
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.TextView
+import android.view.*
+import android.view.inputmethod.EditorInfo
+import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -23,20 +19,26 @@ import com.example.flowerly.model.User
 import com.example.flowerly.utils.loadImageFromFirebase
 import com.example.flowerly.viewmodel.PostViewModel
 import com.example.flowerly.viewmodel.UserViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment() {
+
     private val postViewModel: PostViewModel by viewModels()
     private val userViewModel: UserViewModel by viewModels()
 
-    private lateinit var adapter: PostAdapter
     private lateinit var recyclerView: RecyclerView
+    private lateinit var adapter: PostAdapter
+
     private lateinit var emailTextView: TextView
     private lateinit var profileImageView: ImageView
-    private lateinit var editUsername: EditText
+    private lateinit var editProfileImageButton: ImageView
+    private lateinit var editUsername: TextInputEditText
+    private lateinit var editUsernameLayout: TextInputLayout
     private lateinit var saveUsernameButton: Button
-    private lateinit var logoutButton: Button
-    private lateinit var changeProfileButton: Button
+    private lateinit var logoutButton: ImageView
 
     private var user: User? = null
 
@@ -55,59 +57,92 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initViews(view)
+        setupRecyclerView()
+        setupListeners()
 
+        postViewModel.refreshPosts()
+        userViewModel.loadCurrentUser()
+
+        userViewModel.currentUser.observe(viewLifecycleOwner) { currentUser ->
+            if (currentUser == null) {
+                findNavController().navigate(R.id.loginFragment)
+            } else {
+                user = currentUser
+                updateUI(currentUser)
+                adapter.updateCurrentUser(currentUser)
+
+                postViewModel.getUserPosts(currentUser.id).observe(viewLifecycleOwner) { postList ->
+                    adapter.updatePosts(postList)
+                }
+            }
+        }
+    }
+
+    private fun initViews(view: View) {
         recyclerView = view.findViewById(R.id.user_posts_recycler_view)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+        emailTextView = view.findViewById(R.id.profile_name)
+        profileImageView = view.findViewById(R.id.profile_image_view)
+        editProfileImageButton = view.findViewById(R.id.edit_profile_image_button)
+        editUsername = view.findViewById(R.id.edit_username)
+        editUsernameLayout = view.findViewById(R.id.edit_username_layout)
+        saveUsernameButton = view.findViewById(R.id.save_username_button)
+        logoutButton = view.findViewById(R.id.logout_icon)
+    }
 
+    private fun setupRecyclerView() {
         adapter = PostAdapter(mutableListOf(), onDelete = { post ->
             postViewModel.deletePost(post)
         }, onEdit = { post ->
             val action = ProfileFragmentDirections.actionProfileFragmentToEditPostFragment(post)
             findNavController().navigate(action)
         })
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
         recyclerView.adapter = adapter
+    }
 
-        postViewModel.refreshPosts()
-
-        emailTextView = view.findViewById(R.id.profile_name)
-        profileImageView = view.findViewById(R.id.profile_image_view)
-        editUsername = view.findViewById(R.id.edit_username)
-        saveUsernameButton = view.findViewById(R.id.save_username_button)
-        logoutButton = view.findViewById(R.id.logout)
-        changeProfileButton = view.findViewById(R.id.change_profile_button)
-
-        userViewModel.loadCurrentUser()
-
-        userViewModel.currentUser.observe(viewLifecycleOwner) { currentUser ->
-            currentUser?.let {
-                user = it
-                updateUI(it)
-                adapter.updateCurrentUser(it)
-
-                postViewModel.getUserPosts(it.id).observe(viewLifecycleOwner) { postList ->
-                    adapter.updatePosts(postList)
-                }
-            }
-                ?: run {
-                findNavController().navigate(R.id.loginFragment)
-            }
-        }
-
-        saveUsernameButton.setOnClickListener {
-            val newUsername = editUsername.text.toString().trim()
-            if (newUsername.isNotEmpty()) {
-                lifecycleScope.launch {
-                    updateUsername(newUsername)
-                }
-            }
-        }
-
+    private fun setupListeners() {
         logoutButton.setOnClickListener {
             userViewModel.signOut()
         }
 
-        changeProfileButton.setOnClickListener {
-            pickImage.launch("image/*")
+        editUsernameLayout.setEndIconOnClickListener {
+            editUsername.isEnabled = true
+            editUsername.requestFocus()
+            saveUsernameButton.visibility = View.VISIBLE
+        }
+
+        editUsername.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                trySaveUsername()
+                true
+            } else false
+        }
+
+        saveUsernameButton.setOnClickListener {
+            trySaveUsername()
+        }
+
+        editProfileImageButton.setOnClickListener {
+            MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Update Profile Picture")
+                .setMessage("Choose a new profile picture from your gallery.")
+                .setPositiveButton("Choose") { _, _ ->
+                    pickImage.launch("image/*")
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+    }
+
+    private fun trySaveUsername() {
+        val newUsername = editUsername.text.toString().trim()
+        if (newUsername.isNotEmpty()) {
+            lifecycleScope.launch {
+                updateUsername(newUsername)
+                editUsername.isEnabled = false
+                saveUsernameButton.visibility = View.GONE
+            }
         }
     }
 
@@ -130,13 +165,9 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    private fun updateUI(user: User?) {
-        user?.let {
-            emailTextView.text = it.email
-            editUsername.setText(it.username)
-            loadImageFromFirebase(it.profilePictureUrl, view?.findViewById(R.id.profile_image_view)!!)
-        } ?: run {
-            Log.e("ProfileFragment", "User is null. Cannot update UI.")
-        }
+    private fun updateUI(user: User) {
+        emailTextView.text = user.email
+        editUsername.setText(user.username)
+        loadImageFromFirebase(user.profilePictureUrl, profileImageView)
     }
 }

@@ -8,6 +8,7 @@ import androidx.core.os.HandlerCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.flowerly.dao.AppLocalDatabase
+import com.google.firebase.auth.FirebaseUser
 import java.util.concurrent.Executors
 
 class Model private constructor() {
@@ -20,6 +21,7 @@ class Model private constructor() {
     val posts: LiveData<List<Post>> get() = _posts
 
     private val _userDetails = MutableLiveData<Map<String, User>>()
+    val userDetails: LiveData<Map<String, User>> get() = _userDetails
 
     companion object {
         val instance = Model()

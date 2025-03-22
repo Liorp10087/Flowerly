@@ -33,5 +33,3 @@ interface PostDao {
     @Update
     fun updatePost(post: Post)
 }
-
-
