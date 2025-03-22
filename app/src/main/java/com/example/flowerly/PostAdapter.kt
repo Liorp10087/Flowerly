@@ -12,6 +12,8 @@ import com.example.flowerly.model.Post
 import com.example.flowerly.model.PostWithUser
 import com.example.flowerly.model.User
 import com.example.flowerly.utils.loadImageFromFirebase
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class PostAdapter(
     private val posts: MutableList<PostWithUser>,
@@ -51,15 +53,18 @@ class PostAdapter(
         holder.titleText.text = post.title
         holder.descText.text = post.description
 
-        val currentUserId = FirebaseModel.getCurrentUser()?.uid
-
-        if (post.userId == currentUserId) {
-            holder.deleteButton.visibility = View.VISIBLE
-            holder.editButton.visibility = View.VISIBLE
-        } else {
-            holder.deleteButton.visibility = View.GONE
-            holder.editButton.visibility = View.GONE
-        }
+//        GlobalScope.launch {
+//            val currentUser = FirebaseModel.getCurrentUser()
+//
+//            if (currentUser != null && post.userId == currentUser.id) {
+//                holder.deleteButton.visibility = View.VISIBLE
+//                holder.editButton.visibility = View.VISIBLE
+//            } else {
+//                // Hide buttons if the post doesn't belong to the current user
+//                holder.deleteButton.visibility = View.GONE
+//                holder.editButton.visibility = View.GONE
+//            }
+//        }
 
         holder.deleteButton.setOnClickListener {
             onDelete(post)

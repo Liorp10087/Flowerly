@@ -77,10 +77,13 @@ class ProfileFragment : Fragment() {
         changeProfileButton = view.findViewById(R.id.change_profile_button)
 
 
-        userViewModel.getCurrentUser { currentUser ->
+        userViewModel.loadCurrentUser()
+
+        userViewModel.currentUser.observe(viewLifecycleOwner) { currentUser ->
             currentUser?.let {
                 user = it
                 updateUI(it)
+
                 postViewModel.getUserPosts(it.id).observe(viewLifecycleOwner) { postList ->
                     adapter.updatePosts(postList)
                 }
@@ -89,12 +92,13 @@ class ProfileFragment : Fragment() {
             }
         }
 
+
+
         saveUsernameButton.setOnClickListener {
             val newUsername = editUsername.text.toString().trim()
             if (newUsername.isNotEmpty()) {
                 lifecycleScope.launch {
                     updateUsername(newUsername)
-                    editUsername.setText("")
                 }
             }
         }
@@ -110,11 +114,14 @@ class ProfileFragment : Fragment() {
 
     private fun updateUsername(newUsername: String) {
         user?.let {
-           userViewModel.updateUserUsername(it.id, newUsername, requireContext()) {
+            userViewModel.updateUserUsername(it.id, newUsername, requireContext()) {
+                it.username = newUsername
+                userViewModel.updateCurrentUser(it)
                 updateUI(it)
             }
         }
     }
+
     private fun updateProfilePicture(imageUri: Uri) {
         user?.let {
             userViewModel.updateProfilePicture(it, imageUri, {
