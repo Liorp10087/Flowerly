@@ -60,7 +60,6 @@ class ProfileFragment : Fragment() {
         setupRecyclerView()
         setupListeners()
 
-        postViewModel.refreshPosts()
         userViewModel.loadCurrentUser()
 
         userViewModel.currentUser.observe(viewLifecycleOwner) { currentUser ->
