@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flowerly.PostAdapter
 import com.example.flowerly.R
-import com.example.flowerly.model.Model
 import com.example.flowerly.model.User
 import com.example.flowerly.utils.loadImageFromFirebase
 import com.example.flowerly.viewmodel.PostViewModel
