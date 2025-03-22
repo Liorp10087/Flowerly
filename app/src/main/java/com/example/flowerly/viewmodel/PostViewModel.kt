@@ -30,8 +30,4 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             onFailure()
         })
     }
-
-    fun refreshPosts() {
-        Model.instance.refreshPosts()
-    }
 }

@@ -6,7 +6,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flowerly.PostAdapter
@@ -17,8 +17,8 @@ import com.example.flowerly.viewmodel.UserViewModel
 class MainFragment : Fragment() {
     private lateinit var adapter: PostAdapter
     private lateinit var recyclerView: RecyclerView
-    private lateinit var postViewModel: PostViewModel
-    private lateinit var userViewModel: UserViewModel
+    private val postViewModel: PostViewModel by viewModels()
+    private val userViewModel: UserViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -40,11 +40,6 @@ class MainFragment : Fragment() {
             findNavController().navigate(action)
         })
         recyclerView.adapter = adapter
-
-        postViewModel = ViewModelProvider(this).get(PostViewModel::class.java)
-        userViewModel = ViewModelProvider(this).get(UserViewModel::class.java)
-
-        postViewModel.refreshPosts()
 
         userViewModel.currentUser.observe(viewLifecycleOwner) { currentUser ->
             currentUser?.let {

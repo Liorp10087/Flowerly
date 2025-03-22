@@ -8,7 +8,6 @@ import androidx.core.os.HandlerCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.flowerly.dao.AppLocalDatabase
-import com.google.firebase.auth.FirebaseUser
 import java.util.concurrent.Executors
 
 class Model private constructor() {
@@ -16,9 +15,6 @@ class Model private constructor() {
     private val db = AppLocalDatabase.db
     private val executor = Executors.newSingleThreadExecutor()
     private val handler = HandlerCompat.createAsync(Looper.getMainLooper())
-
-    private val _posts = MutableLiveData<List<Post>>()
-    val posts: LiveData<List<Post>> get() = _posts
 
     private val _userDetails = MutableLiveData<Map<String, User>>()
     val userDetails: LiveData<Map<String, User>> get() = _userDetails
@@ -127,18 +123,6 @@ class Model private constructor() {
     fun getAllPosts(): LiveData<List<PostWithUser>> = db.postDao().getAllPosts()
 
     fun getUserPosts(userId: String): LiveData<List<PostWithUser>> = db.postDao().getUserPosts(userId)
-
-    fun refreshPosts() {
-        firebase.getAllPosts { posts, userIds ->
-            _posts.postValue(posts)
-            executor.execute {
-                db.postDao().insertPosts(posts)
-            }
-            firebase.getUsersByIds(userIds) { userMap ->
-                _userDetails.postValue(userMap)
-            }
-        }
-    }
 
     fun addPost(post: Post, imageUri: Uri) {
         firebase.uploadImage(imageUri) { url ->
