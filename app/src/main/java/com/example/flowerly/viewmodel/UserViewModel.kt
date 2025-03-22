@@ -3,10 +3,12 @@ package com.example.flowerly.viewmodel
 import android.app.Application
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.example.flowerly.model.FirebaseModel
 import com.example.flowerly.model.Model
 import com.example.flowerly.model.User
 import kotlinx.coroutines.launch
@@ -20,14 +22,37 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         loadCurrentUser()
     }
     fun loadCurrentUser() {
+        Model.instance.getCurrentUserFromCache().observeForever { cachedUser ->
+            if (cachedUser != null) {
+                _currentUser.value = cachedUser
+            } else {
+
+                FirebaseModel.firebaseUserLiveData.observeForever { firebaseUser ->
+                    if (firebaseUser != null) {
+                        fetchUserDataFromFirebase()
+                    } else {
+                        _currentUser.value = null
+                    }
+                }
+            }
+        }
+    }
+
+    private fun fetchUserDataFromFirebase() {
         viewModelScope.launch {
-            val user = Model.instance.getCurrentUser()
-            _currentUser.value = user.value
+            val firebaseUserData = Model.instance.getCurrentUserFromFirebase()
+            if (firebaseUserData != null) {
+                Model.instance.setCurrentUser(firebaseUserData)
+                _currentUser.value = firebaseUserData
+            } else {
+                _currentUser.value = null
+            }
         }
     }
 
     fun updateCurrentUser(user: User) {
         _currentUser.value = user
+        Model.instance.setCurrentUser(user)
     }
 
     fun updateUserUsername(userId: String, newUsername: String, context: Context, callback: () -> Unit) {
@@ -40,8 +65,9 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
         Model.instance.updateProfilePicture(user, imageUri, onSuccess, onFailure)
     }
 
-    fun logout() {
-
+    fun signOut() {
+        Model.instance.signOut()
+        _currentUser.value = null
     }
 
     fun refreshAllUsers() {

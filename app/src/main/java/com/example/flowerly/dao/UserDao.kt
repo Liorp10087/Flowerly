@@ -13,7 +13,7 @@ interface UserDao {
     fun insertUser(user: User)
 
     @Query("SELECT * FROM User WHERE isCurrentUser = 1 LIMIT 1")
-    fun getCurrentUser():LiveData<User?>
+    fun getCurrentUser():User?
 
     @Query("UPDATE User SET isCurrentUser = 0 WHERE isCurrentUser = 1")
     fun clearCurrentUser()

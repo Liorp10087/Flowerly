@@ -8,9 +8,6 @@ import androidx.core.os.HandlerCompat
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.flowerly.dao.AppLocalDatabase
-import com.google.firebase.auth.FirebaseUser
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
 class Model private constructor() {
@@ -28,37 +25,20 @@ class Model private constructor() {
         val instance = Model()
     }
 
-    private suspend fun getCurrentUserFromFirebase(): User? {
+    suspend fun getCurrentUserFromFirebase(): User? {
         return firebase.getCurrentUser()
     }
 
-    private fun getCurrentUserFromCache(): LiveData<User?> {
-        return db.userDao().getCurrentUser()
-    }
-
-
-    suspend fun getCurrentUser(): LiveData<User?> {
-        val liveData = MutableLiveData<User?>()
-
-        withContext(Dispatchers.IO) {
-            val currentUser = getCurrentUserFromCache().value
-
-            withContext(Dispatchers.Main) {
-                if (currentUser != null) {
-                    liveData.value = currentUser
-                } else {
-                    val firebaseUser = getCurrentUserFromFirebase()
-                    if (firebaseUser != null) {
-                        setCurrentUser(firebaseUser)
-                        liveData.value = firebaseUser
-                    } else {
-                        liveData.value = null
-                    }
-                }
+    fun getCurrentUserFromCache(): LiveData<User?> {
+        val userLiveData = MutableLiveData<User?>()
+        executor.execute {
+            val user = db.userDao().getCurrentUser()
+            handler.post {
+                userLiveData.value = user
             }
         }
 
-        return liveData
+        return userLiveData
     }
 
 
@@ -74,8 +54,6 @@ class Model private constructor() {
             }
             callback(success)
         }
-
-
     }
 
     fun signup(email: String, password: String, context: Context, callback: (Boolean) -> Unit) {
@@ -89,11 +67,22 @@ class Model private constructor() {
         }
     }
 
-    private fun setCurrentUser(user: User) {
+    fun signOut() {
+        FirebaseModel.signOut()
         executor.execute {
-            db.userDao().clearCurrentUser()
+            clearCachedCurrentUser();
+        }
+    }
+
+    fun setCurrentUser(user: User) {
+        executor.execute {
+            clearCachedCurrentUser()
             db.userDao().insertUser(user.copy(isCurrentUser = true))
         }
+    }
+
+    fun clearCachedCurrentUser() {
+        db.userDao().clearCurrentUser()
     }
 
     fun updateUserUsername(userId: String, newUsername: String, context: Context, callback: () -> Unit) {

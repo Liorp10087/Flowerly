@@ -19,7 +19,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flowerly.PostAdapter
 import com.example.flowerly.R
-import com.example.flowerly.model.FirebaseModel
 import com.example.flowerly.model.Model
 import com.example.flowerly.model.User
 import com.example.flowerly.utils.loadImageFromFirebase
@@ -31,7 +30,6 @@ class ProfileFragment : Fragment() {
     private val postViewModel: PostViewModel by viewModels()
     private val userViewModel: UserViewModel by viewModels()
 
-    private val firebaseModel = FirebaseModel
     private lateinit var adapter: PostAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var emailTextView: TextView
@@ -90,7 +88,8 @@ class ProfileFragment : Fragment() {
                 postViewModel.getUserPosts(it.id).observe(viewLifecycleOwner) { postList ->
                     adapter.updatePosts(postList)
                 }
-            } ?: run {
+            }
+                ?: run {
                 findNavController().navigate(R.id.loginFragment)
             }
         }
@@ -105,7 +104,7 @@ class ProfileFragment : Fragment() {
         }
 
         logoutButton.setOnClickListener {
-            firebaseModel.signOut()
+            userViewModel.signOut()
         }
 
         changeProfileButton.setOnClickListener {
