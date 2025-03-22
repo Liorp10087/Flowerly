@@ -66,7 +66,7 @@ class Model private constructor() {
     fun signup(email: String, password: String, context: Context, callback: (Boolean) -> Unit) {
         firebase.signUp(context, email, password) { success, user ->
             if (success && user != null) {
-                val newUser = User(user.uid, username = email, "ic_profile.png")
+                val newUser = User(user.uid, email = email, profilePictureUrl = "ic_profile.png", username = email )
                 addUserToLocalAndFirebase(newUser)
                 setCurrentUser(newUser)
             }

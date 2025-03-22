@@ -2,6 +2,7 @@ package com.example.flowerly.ui
 
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,7 +33,7 @@ class ProfileFragment : Fragment() {
     private val firebaseModel = FirebaseModel
     private lateinit var adapter: PostAdapter
     private lateinit var recyclerView: RecyclerView
-    private lateinit var userNameTextView: TextView
+    private lateinit var emailTextView: TextView
     private lateinit var profileImageView: ImageView
     private lateinit var editUsername: EditText
     private lateinit var saveUsernameButton: Button
@@ -68,7 +69,7 @@ class ProfileFragment : Fragment() {
         })
         recyclerView.adapter = adapter
 
-        userNameTextView = view.findViewById(R.id.profile_name)
+        emailTextView = view.findViewById(R.id.profile_name)
         profileImageView = view.findViewById(R.id.profile_image_view)
         editUsername = view.findViewById(R.id.edit_username)
         saveUsernameButton = view.findViewById(R.id.save_username_button)
@@ -117,18 +118,20 @@ class ProfileFragment : Fragment() {
     private fun updateProfilePicture(imageUri: Uri) {
         user?.let {
             userViewModel.updateProfilePicture(it, imageUri, {
-                loadImageFromFirebase(it.profilePictureUrl, view?.findViewById(R.id.profile_image_view)!!) // Reload image
+                loadImageFromFirebase(it.profilePictureUrl, view?.findViewById(R.id.profile_image_view)!!)
                 updateUI(it)
             }, {
             })
         }
     }
 
-
-    private fun updateUI(user: User) {
-        userNameTextView.text = user.username
-        editUsername.setText(user.username)
-        loadImageFromFirebase(user.profilePictureUrl, view?.findViewById(R.id.profile_image_view)!!)
-
+    private fun updateUI(user: User?) {
+        user?.let {
+            emailTextView.text = it.email
+            editUsername.setText(it.username)
+            loadImageFromFirebase(it.profilePictureUrl, view?.findViewById(R.id.profile_image_view)!!)
+        } ?: run {
+            Log.e("ProfileFragment", "User is null. Cannot update UI.")
+        }
     }
 }
