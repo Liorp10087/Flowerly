@@ -7,7 +7,6 @@
     android:padding="24dp"
     android:background="?android:attr/windowBackground">
 
-    <!-- Logout icon at top-right -->
     <ImageView
         android:id="@+id/logout_icon"
         android:layout_width="32dp"
@@ -19,7 +18,6 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:padding="4dp" />
 
-    <!-- Main content wrapper -->
     <LinearLayout
         android:id="@+id/content_layout"
         android:layout_below="@id/logout_icon"
@@ -29,7 +27,6 @@
         android:gravity="center_horizontal"
         android:layout_marginTop="16dp">
 
-        <!-- Profile Picture with edit icon -->
         <FrameLayout
             android:layout_width="120dp"
             android:layout_height="120dp"
@@ -54,7 +51,6 @@
                 android:contentDescription="Edit Profile Picture"/>
         </FrameLayout>
 
-        <!-- Email Text -->
         <TextView
             android:id="@+id/profile_name"
             android:layout_width="wrap_content"
@@ -64,7 +60,6 @@
             android:textSize="16sp"
             android:textColor="?android:textColorPrimary" />
 
-        <!-- Username EditText with edit icon -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/edit_username_layout"
             android:layout_width="match_parent"
@@ -83,7 +78,6 @@
                 android:enabled="false"/>
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Save Username Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/save_username_button"
             android:layout_width="wrap_content"
@@ -93,7 +87,6 @@
             android:elevation="2dp"
             android:visibility="gone" />
 
-        <!-- "Your Posts" Header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -103,7 +96,6 @@
             android:textColor="?android:textColorPrimary"
             android:layout_marginBottom="8dp" />
 
-        <!-- Posts RecyclerView -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/user_posts_recycler_view"
             android:layout_width="match_parent"
