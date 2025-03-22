@@ -8,6 +8,7 @@ data class User(
     @PrimaryKey var id: String = "",
     var username: String = "",
     var profilePictureUrl: String = "",
+    var isCurrentUser: Boolean = false
 ) {
 
     companion object {

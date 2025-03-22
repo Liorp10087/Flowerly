@@ -10,7 +10,7 @@ import com.example.flowerly.model.User
 import com.example.flowerly.model.Post
 
 
-@Database(entities = [User::class, Post::class], version = 8)
+@Database(entities = [User::class, Post::class], version = 20)
 abstract class AppLocalDbRepository : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun postDao(): PostDao
