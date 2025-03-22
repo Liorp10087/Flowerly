@@ -2,6 +2,7 @@ package com.example.flowerly.model
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LiveData
 import com.google.firebase.auth.FirebaseAuth
@@ -10,6 +11,7 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.tasks.await
 
 object FirebaseModel {
     private val db by lazy { Firebase.firestore }
@@ -42,7 +44,24 @@ object FirebaseModel {
         }
     }
 
-    fun getCurrentUser(): FirebaseUser? = auth.currentUser
+    suspend fun getCurrentUser(): User? {
+        val firebaseUser = auth.currentUser
+        return firebaseUser?.let {
+            try {
+                val document = db.collection(USERS_COLLECTION).document(it.uid).get().await()
+                val user = document.toObject(User::class.java)?.copy(
+                    email = it.email ?: "",
+                    username = document.getString("username") ?: it.email ?: "",
+                    profilePictureUrl = document.getString("profilePictureUrl") ?: "ic_profile.png",
+                )
+                user
+            } catch (e: Exception) {
+                null
+            }
+        } ?: null
+    }
+
+
 
     fun signIn(
         context: Context,
@@ -220,4 +239,34 @@ object FirebaseModel {
                 }
         }
     }
+
+    fun updatePostInFirestore(post: Post, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        val postData = hashMapOf(
+            "id" to post.id,
+            "title" to post.title,
+            "description" to post.description,
+            "imagePathUrl" to post.imagePathUrl,
+            "user" to db.collection("users").document(post.userId)
+        )
+
+        db.collection(POSTS_COLLECTION).document(post.id).set(postData)
+            .addOnSuccessListener {
+                onSuccess()
+                Log.d("FirebaseModel", "Post successfully updated in Firestore")
+            }
+            .addOnFailureListener {
+                onFailure()
+                Log.e("FirebaseModel", "Failed to update post in Firestore")
+            }
+    }
+
+    fun updateUserProfilePicture(updatedUser: User, callback: () -> Unit) {
+        val userRef = Firebase.firestore.collection("users").document(updatedUser.id)
+        userRef.update("profilePictureUrl", updatedUser.profilePictureUrl)
+            .addOnSuccessListener { callback() }
+            .addOnFailureListener {
+                Log.d("FirebaseModel", "Picture successfully updated in Firestore")
+            }
+    }
+
 }

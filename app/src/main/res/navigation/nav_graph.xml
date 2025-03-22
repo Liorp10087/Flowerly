@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -19,19 +18,42 @@
         android:name="com.example.flowerly.ui.MainFragment"
         android:label="Main Feed"
         tools:layout="@layout/fragment_main">
-        <!-- Add action to navigate to Upload Post fragment -->
         <action
             android:id="@+id/action_mainFragment_to_uploadPostFragment"
             app:destination="@id/uploadPostFragment" />
+        <action
+            android:id="@+id/action_mainFragment_to_editPostFragment"
+            app:destination="@id/editPostFragment">
+            <argument
+                android:name="post"
+                app:argType="com.example.flowerly.model.Post" />
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/editPostFragment"
+        android:name="com.example.flowerly.ui.EditPostFragment"
+        android:label="Edit Post"
+        tools:layout="@layout/fragment_edit_post" >
+        <argument
+            android:name="post"
+            app:argType="com.example.flowerly.model.Post" />
     </fragment>
 
     <fragment
         android:id="@+id/profileFragment"
         android:name="com.example.flowerly.ui.ProfileFragment"
         android:label="Profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profileFragment_to_editPostFragment"
+            app:destination="@id/editPostFragment">
+            <argument
+                android:name="post"
+                app:argType="com.example.flowerly.model.Post" />
+        </action>
+    </fragment>
 
-    <!-- Define the Upload Post Fragment -->
     <fragment
         android:id="@+id/uploadPostFragment"
         android:name="com.example.flowerly.ui.UploadPostFragment"

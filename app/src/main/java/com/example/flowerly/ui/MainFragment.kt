@@ -1,5 +1,6 @@
 package com.example.flowerly.ui
 
+import androidx.navigation.fragment.findNavController
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,10 +13,13 @@ import com.example.flowerly.PostAdapter
 import com.example.flowerly.R
 import com.example.flowerly.model.Model
 import com.example.flowerly.viewmodel.PostViewModel
+import com.example.flowerly.viewmodel.UserViewModel
 
 class MainFragment : Fragment() {
     private lateinit var adapter: PostAdapter
     private lateinit var recyclerView: RecyclerView
+    private lateinit var postViewModel: PostViewModel
+    private lateinit var userViewModel: UserViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -30,17 +34,27 @@ class MainFragment : Fragment() {
         recyclerView = view.findViewById(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        adapter = PostAdapter(mutableListOf(), emptyMap(), onDelete = { post -> Model.instance.deletePost(post) })
+        adapter = PostAdapter(mutableListOf(), onDelete = { post ->
+            postViewModel.deletePost(post)
+        }, onEdit = { post ->
+            val action = MainFragmentDirections.actionMainFragmentToEditPostFragment(post)
+            findNavController().navigate(action)
+        })
         recyclerView.adapter = adapter
+
+        postViewModel = ViewModelProvider(this).get(PostViewModel::class.java)
+        userViewModel = ViewModelProvider(this).get(UserViewModel::class.java)
 
         Model.instance.refreshPosts()
 
-        Model.instance.posts.observe(viewLifecycleOwner) { postList ->
-            adapter.updatePosts(postList)
+        userViewModel.currentUser.observe(viewLifecycleOwner) { currentUser ->
+            currentUser?.let {
+                adapter.updateCurrentUser(it)
+            }
         }
 
-        Model.instance.userDetails.observe(viewLifecycleOwner) { userMap ->
-            adapter.updateUsers(userMap)
+        postViewModel.posts.observe(viewLifecycleOwner) { postList ->
+            adapter.updatePosts(postList)
         }
     }
 }

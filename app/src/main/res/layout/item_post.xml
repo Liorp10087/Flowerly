@@ -5,7 +5,6 @@
     android:orientation="vertical"
     android:padding="8dp">
 
-    <!-- User Profile Section -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -32,14 +31,12 @@
             android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- Post Image -->
     <ImageView
         android:id="@+id/post_image"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:scaleType="centerCrop" />
 
-    <!-- Post Title -->
     <TextView
         android:id="@+id/post_title"
         android:layout_width="match_parent"
@@ -48,7 +45,6 @@
         android:textStyle="bold"
         android:paddingTop="8dp"/>
 
-    <!-- Post Description -->
     <TextView
         android:id="@+id/post_description"
         android:layout_width="match_parent"
@@ -56,12 +52,25 @@
         android:textSize="14sp"
         android:paddingTop="4dp"/>
 
-    <!-- Delete Button -->
-    <Button
-        android:id="@+id/delete_post_button"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Delete"
+        android:orientation="horizontal"
         android:layout_gravity="end"
-        android:layout_marginTop="8dp"/>
+        android:paddingTop="8dp"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/delete_post_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Delete" />
+
+        <Button
+            android:id="@+id/edit_post_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit" />
+    </LinearLayout>
 </LinearLayout>

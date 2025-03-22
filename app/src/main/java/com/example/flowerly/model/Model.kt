@@ -27,47 +27,71 @@ class Model private constructor() {
         val instance = Model()
     }
 
-    fun getCurrentUser(): FirebaseUser? {
+    suspend fun getCurrentUserFromFirebase(): User? {
         return firebase.getCurrentUser()
     }
+
+    fun getCurrentUserFromCache(): LiveData<User?> {
+        val userLiveData = MutableLiveData<User?>()
+        executor.execute {
+            val user = db.userDao().getCurrentUser()
+            handler.post {
+                userLiveData.value = user
+            }
+        }
+
+        return userLiveData
+    }
+
 
     fun login(email: String, password: String, context: Context, callback: (Boolean) -> Unit) {
         firebase.signIn(context, email, password) { success, user ->
             if (success && user != null) {
                 firebase.getUserById(user.uid) { fetchedUser ->
-                    if (fetchedUser != null) {
-                        executor.execute {
-                            db.userDao().insertUser(fetchedUser)
-                        }
-                    }
-                    callback(fetchedUser != null)
+                    val username = fetchedUser?.username ?: email
+                    val newUser = User(user.uid, user.email ?: "", profilePictureUrl = "ic_profile.png", username = username)
+                    addUserToLocalAndFirebase(newUser)
+                    setCurrentUser(newUser)
                 }
-            } else {
-                callback(false)
             }
+            callback(success)
         }
     }
 
     fun signup(email: String, password: String, context: Context, callback: (Boolean) -> Unit) {
         firebase.signUp(context, email, password) { success, user ->
             if (success && user != null) {
-                val newUser = User(user.uid, email, "ic_profile.png")
+                val newUser = User(user.uid, email = email, profilePictureUrl = "ic_profile.png", username = email )
                 addUserToLocalAndFirebase(newUser)
+                setCurrentUser(newUser)
             }
             callback(success)
         }
     }
 
-    fun updateUserUsername(
-        userId: String,
-        newUsername: String,
-        context: Context,
-        callback: () -> Unit
-    ) {
-        FirebaseModel.updateUserUsername(context, userId, newUsername) { user ->
+    fun signOut() {
+        FirebaseModel.signOut()
+        executor.execute {
+            clearCachedCurrentUser();
+        }
+    }
+
+    fun setCurrentUser(user: User) {
+        executor.execute {
+            clearCachedCurrentUser()
+            db.userDao().insertUser(user.copy(isCurrentUser = true))
+        }
+    }
+
+    fun clearCachedCurrentUser() {
+        db.userDao().clearCurrentUser()
+    }
+
+    fun updateUserUsername(userId: String, newUsername: String, context: Context, callback: () -> Unit) {
+        FirebaseModel.updateUserUsername(context, userId, newUsername) { updatedUser ->
             executor.execute {
-                if (user != null) {
-                    db.userDao().insertUser(user)
+                if (updatedUser != null) {
+                    db.userDao().insertUser(updatedUser)
                 }
                 handler.post {
                     callback()
@@ -84,15 +108,25 @@ class Model private constructor() {
         }
     }
 
-    private fun refreshAllUsers() {
+    fun refreshAllUsers() {
         firebase.getAllUsers { users ->
             executor.execute {
-                users.forEach { db.userDao().insertUser(it) }
+                users.forEach { user ->
+                    val currentUser = getCurrentUserFromCache().value
+                    val userToInsert = if (user.id == currentUser?.id) {
+                        user.copy(isCurrentUser = true)
+                    } else {
+                        user.copy(isCurrentUser = false)
+                    }
+                    db.userDao().insertUser(userToInsert)
+                }
             }
         }
     }
 
-    fun getUserPosts(userId: String): LiveData<List<Post>> = db.postDao().getUserPosts(userId)
+    fun getAllPosts(): LiveData<List<PostWithUser>> = db.postDao().getAllPosts()
+
+    fun getUserPosts(userId: String): LiveData<List<PostWithUser>> = db.postDao().getUserPosts(userId)
 
     fun refreshPosts() {
         firebase.getAllPosts { posts, userIds ->
@@ -124,9 +158,57 @@ class Model private constructor() {
 
     fun deletePost(post: Post) {
         firebase.deletePostFromFirestore(post.id, {
-            executor.execute { db.postDao().deletePost(post) }
+            executor.execute { db.postDao().deletePost(post) } // Remove from Room
         }, {
             Log.e("Model", "Failed to delete post from Firestore")
         })
     }
+
+    fun updatePost(post: Post, imageUri: Uri?, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        if (imageUri != null) {
+            firebase.uploadImage(imageUri) { imageUrl ->
+                if (imageUrl != null) {
+                    val updatedPost = post.copy(imagePathUrl = imageUrl)
+                    firebase.updatePostInFirestore(updatedPost, {
+                        executor.execute { db.postDao().updatePost(updatedPost) } // Update in Room
+                        onSuccess()
+                    }, {
+                        Log.e("Model", "Failed to update post in Firestore")
+                        onFailure()
+                    })
+                } else {
+                    Log.e("Model", "Failed to upload image")
+                    onFailure()
+                }
+            }
+        } else {
+            firebase.updatePostInFirestore(post, {
+                executor.execute { db.postDao().updatePost(post) } // Update in Room
+                onSuccess()
+            }, {
+                Log.e("Model", "Failed to update post in Firestore")
+                onFailure()
+            })
+        }
+    }
+
+    fun updateProfilePicture(user: User, imageUri: Uri?, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        if (imageUri != null) {
+            firebase.uploadImage(imageUri) { imageUrl ->
+                if (imageUrl != null) {
+                    val updatedUser = user.copy(profilePictureUrl = imageUrl)
+
+                    firebase.updateUserProfilePicture(updatedUser) {
+                        executor.execute { db.userDao().insertUser(updatedUser) }
+
+                        onSuccess()
+                    }
+                } else {
+                    Log.e("Model", "Failed to upload image")
+                    onFailure()
+                }
+            }
+        }
+    }
 }
+
