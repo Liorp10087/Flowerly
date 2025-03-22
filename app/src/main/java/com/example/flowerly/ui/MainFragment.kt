@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flowerly.PostAdapter
 import com.example.flowerly.R
-import com.example.flowerly.model.Model
 import com.example.flowerly.viewmodel.PostViewModel
 import com.example.flowerly.viewmodel.UserViewModel
 
@@ -45,7 +44,7 @@ class MainFragment : Fragment() {
         postViewModel = ViewModelProvider(this).get(PostViewModel::class.java)
         userViewModel = ViewModelProvider(this).get(UserViewModel::class.java)
 
-        Model.instance.refreshPosts()
+        postViewModel.refreshPosts()
 
         userViewModel.currentUser.observe(viewLifecycleOwner) { currentUser ->
             currentUser?.let {
