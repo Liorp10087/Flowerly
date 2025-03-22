@@ -31,7 +31,7 @@ class Model private constructor() {
     }
 
     fun getCurrentUserFromCache(): LiveData<User?> {
-        return db.userDao().getCurrentUser()  // Fetch the current user from Room
+        return db.userDao().getCurrentUser()
     }
 
     fun getCurrentUser(callback: (User?) -> Unit) {
@@ -183,6 +183,25 @@ class Model private constructor() {
                 Log.e("Model", "Failed to update post in Firestore")
                 onFailure()
             })
+        }
+    }
+
+    fun updateProfilePicture(user: User, imageUri: Uri?, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        if (imageUri != null) {
+            firebase.uploadImage(imageUri) { imageUrl ->
+                if (imageUrl != null) {
+                    val updatedUser = user.copy(profilePictureUrl = imageUrl)
+
+                    firebase.updateUserProfilePicture(updatedUser) {
+                        executor.execute { db.userDao().insertUser(updatedUser) }
+
+                        onSuccess()
+                    }
+                } else {
+                    Log.e("Model", "Failed to upload image")
+                    onFailure()
+                }
+            }
         }
     }
 }

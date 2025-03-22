@@ -242,4 +242,13 @@ object FirebaseModel {
             }
     }
 
+    fun updateUserProfilePicture(updatedUser: User, callback: () -> Unit) {
+        val userRef = Firebase.firestore.collection("users").document(updatedUser.id)
+        userRef.update("profilePictureUrl", updatedUser.profilePictureUrl)
+            .addOnSuccessListener { callback() }
+            .addOnFailureListener {
+                Log.d("FirebaseModel", "Picture successfully updated in Firestore")
+            }
+    }
+
 }

@@ -15,11 +15,15 @@ import com.example.flowerly.databinding.FragmentUploadPostBinding
 import com.example.flowerly.model.Post
 import com.example.flowerly.model.Model
 import com.example.flowerly.viewmodel.PostViewModel
+import com.example.flowerly.viewmodel.UserViewModel
 
 class UploadPostFragment : Fragment() {
     private lateinit var binding: FragmentUploadPostBinding
     private var imageUri: Uri? = null
     private val postViewModel: PostViewModel by viewModels()
+
+    private val userViewModel: UserViewModel by viewModels()
+
 
 
     private val imagePickerResult =
@@ -75,7 +79,7 @@ class UploadPostFragment : Fragment() {
         val title = binding.titleEditText.text.toString().trim()
         val description = binding.descriptionEditText.text.toString().trim()
         val selectedImageUri = imageUri
-        Model.instance.getCurrentUser { currentUser ->
+        userViewModel.getCurrentUser { currentUser ->
             if (title.isNotEmpty() && selectedImageUri != null && currentUser != null) {
                 val post = Post(
                     id = System.currentTimeMillis().toString(),
