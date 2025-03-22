@@ -44,7 +44,15 @@
         android:id="@+id/profileFragment"
         android:name="com.example.flowerly.ui.ProfileFragment"
         android:label="Profile"
-        tools:layout="@layout/fragment_profile" />
+        tools:layout="@layout/fragment_profile">
+        <action
+            android:id="@+id/action_profileFragment_to_editPostFragment"
+            app:destination="@id/editPostFragment">
+            <argument
+                android:name="post"
+                app:argType="com.example.flowerly.model.Post" />
+        </action>
+    </fragment>
 
     <fragment
         android:id="@+id/uploadPostFragment"

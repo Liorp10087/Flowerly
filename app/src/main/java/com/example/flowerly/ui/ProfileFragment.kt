@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.flowerly.PostAdapter
 import com.example.flowerly.R
 import com.example.flowerly.model.FirebaseModel
+import com.example.flowerly.model.Model
 import com.example.flowerly.model.User
 import com.example.flowerly.utils.loadImageFromFirebase
 import com.example.flowerly.viewmodel.PostViewModel
@@ -61,13 +62,15 @@ class ProfileFragment : Fragment() {
         recyclerView = view.findViewById(R.id.user_posts_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        adapter = PostAdapter(mutableListOf(), emptyMap(), onDelete = { post ->
+        adapter = PostAdapter(mutableListOf(), onDelete = { post ->
             postViewModel.deletePost(post)
         }, onEdit = { post ->
-            val action = MainFragmentDirections.actionMainFragmentToEditPostFragment(post)
+            val action = ProfileFragmentDirections.actionProfileFragmentToEditPostFragment(post)
             findNavController().navigate(action)
         })
         recyclerView.adapter = adapter
+
+        Model.instance.refreshPosts()
 
         emailTextView = view.findViewById(R.id.profile_name)
         profileImageView = view.findViewById(R.id.profile_image_view)
@@ -76,13 +79,13 @@ class ProfileFragment : Fragment() {
         logoutButton = view.findViewById(R.id.logout)
         changeProfileButton = view.findViewById(R.id.change_profile_button)
 
-
         userViewModel.loadCurrentUser()
 
         userViewModel.currentUser.observe(viewLifecycleOwner) { currentUser ->
             currentUser?.let {
                 user = it
                 updateUI(it)
+                adapter.updateCurrentUser(it)
 
                 postViewModel.getUserPosts(it.id).observe(viewLifecycleOwner) { postList ->
                     adapter.updatePosts(postList)
@@ -91,8 +94,6 @@ class ProfileFragment : Fragment() {
                 findNavController().navigate(R.id.loginFragment)
             }
         }
-
-
 
         saveUsernameButton.setOnClickListener {
             val newUsername = editUsername.text.toString().trim()
@@ -127,15 +128,14 @@ class ProfileFragment : Fragment() {
             userViewModel.updateProfilePicture(it, imageUri, {
                 loadImageFromFirebase(it.profilePictureUrl, view?.findViewById(R.id.profile_image_view)!!)
                 updateUI(it)
-            }, {
-            })
+            }, { })
         }
     }
 
     private fun updateUI(user: User?) {
         user?.let {
             emailTextView.text = it.email
-            editUsername.setText(it.username)
+            editUsername.setText(it.username) // Ensure EditText is updated with the new username
             loadImageFromFirebase(it.profilePictureUrl, view?.findViewById(R.id.profile_image_view)!!)
         } ?: run {
             Log.e("ProfileFragment", "User is null. Cannot update UI.")
