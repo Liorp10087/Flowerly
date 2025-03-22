@@ -29,6 +29,8 @@ class MainActivity : AppCompatActivity() {
             if (currentUser == null) {
                 navController?.navigate(R.id.loginFragment)
             }
+
+            binding.fabAdd.visibility = if (currentUser == null) View.GONE else View.VISIBLE
         }
 
         navController?.let { controller ->
