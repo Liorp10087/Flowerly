@@ -135,7 +135,7 @@ class ProfileFragment : Fragment() {
     private fun updateUI(user: User?) {
         user?.let {
             emailTextView.text = it.email
-            editUsername.setText(it.username) // Ensure EditText is updated with the new username
+            editUsername.setText(it.username)
             loadImageFromFirebase(it.profilePictureUrl, view?.findViewById(R.id.profile_image_view)!!)
         } ?: run {
             Log.e("ProfileFragment", "User is null. Cannot update UI.")
