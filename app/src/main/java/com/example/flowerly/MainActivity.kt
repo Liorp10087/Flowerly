@@ -2,62 +2,46 @@ package com.example.flowerly
 
 import android.os.Bundle
 import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.flowerly.databinding.ActivityMainBinding
-import com.example.flowerly.model.FirebaseModel
-import com.example.flowerly.model.Model
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import kotlinx.coroutines.launch
+import com.example.flowerly.viewmodel.UserViewModel
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private val userViewModel: UserViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-
         setContentView(binding.root)
 
-        Model.instance.refreshAllUsers()
+        userViewModel.refreshAllUsers()
 
+        val navController = (supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment)?.navController
+        val bottomNavigation = binding.bottomNavigation
 
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
-        val navController = navHostFragment?.navController
-        val bottomNavigation: BottomNavigationView = binding.bottomNavigation
-
-        FirebaseModel.firebaseUserLiveData.observe(this) { user ->
-            bottomNavigation.visibility = if (user == null) View.GONE else View.VISIBLE
-            if (user == null) {
-                navController?.navigate(R.id.loginFragment)
-            }
-        }
-
-
-        lifecycleScope.launch {
-            val currentUser = FirebaseModel.getCurrentUser()
-
+        userViewModel.currentUser.observe(this) { currentUser ->
+            bottomNavigation.visibility = if (currentUser == null) View.GONE else View.VISIBLE
             if (currentUser == null) {
                 navController?.navigate(R.id.loginFragment)
             }
         }
 
-        navController?.let {
-            bottomNavigation.setupWithNavController(it)
+        navController?.let { controller ->
+            bottomNavigation.setupWithNavController(controller)
 
             bottomNavigation.setOnItemSelectedListener { item ->
                 when (item.itemId) {
                     R.id.nav_home -> {
-                        it.navigate(R.id.mainFragment)
+                        controller.navigate(R.id.mainFragment)
                         true
                     }
                     R.id.nav_profile -> {
-                        it.navigate(R.id.profileFragment)
+                        controller.navigate(R.id.profileFragment)
                         true
                     }
                     else -> false
@@ -65,8 +49,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        val fabUpload: FloatingActionButton = findViewById(R.id.fab_add)
-        fabUpload.setOnClickListener {
+        binding.fabAdd.setOnClickListener {
             navController?.navigate(R.id.uploadPostFragment)
         }
     }
