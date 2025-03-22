@@ -2,7 +2,6 @@ package com.example.flowerly.ui
 
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.view.inputmethod.EditorInfo
 import android.widget.*
@@ -159,9 +158,10 @@ class ProfileFragment : Fragment() {
     private fun updateProfilePicture(imageUri: Uri) {
         user?.let {
             userViewModel.updateProfilePicture(it, imageUri, {
-                loadImageFromFirebase(it.profilePictureUrl, view?.findViewById(R.id.profile_image_view)!!)
-                updateUI(it)
-            }, { })
+                loadImageFromFirebase(imageUri.toString(), profileImageView)
+            }, {
+                Toast.makeText(requireContext(), "Failed to update profile picture", Toast.LENGTH_SHORT).show()
+            })
         }
     }
 
