@@ -9,11 +9,12 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.flowerly.model.FirebaseModel
 import com.example.flowerly.model.Post
+import com.example.flowerly.model.PostWithUser
 import com.example.flowerly.model.User
 import com.example.flowerly.utils.loadImageFromFirebase
 
 class PostAdapter(
-    private val posts: MutableList<Post>,
+    private val posts: MutableList<PostWithUser>,
     private var userMap: Map<String, User> = emptyMap(),
     private val onDelete: (Post) -> Unit,
     private val onEdit: (Post) -> Unit
@@ -36,19 +37,17 @@ class PostAdapter(
     }
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        val post = posts[position]
+        val postWithUser = posts[position]
 
-        val user = userMap[post.userId] ?: User(
-            id = post.userId,
-            username = "Unknown User",
-            profilePictureUrl = "default_profile_image.png"
-        )
+        val post = postWithUser.post
+        val user = postWithUser.user
 
-        holder.usernameTextView.text = user.username
-        loadImageFromFirebase(user.profilePictureUrl, holder.profileImageView)
+        if (user != null) {
+            holder.usernameTextView.text = user.username
+            loadImageFromFirebase(user.profilePictureUrl, holder.profileImageView)
+        }
 
         loadImageFromFirebase(post.imagePathUrl, holder.imageView)
-
         holder.titleText.text = post.title
         holder.descText.text = post.description
 
@@ -74,7 +73,7 @@ class PostAdapter(
 
     override fun getItemCount(): Int = posts.size
 
-    fun updatePosts(newPosts: List<Post>) {
+    fun updatePosts(newPosts: List<PostWithUser>) {
         posts.clear()
         posts.addAll(newPosts)
         notifyDataSetChanged()

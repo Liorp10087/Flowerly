@@ -21,7 +21,6 @@ class Model private constructor() {
     val posts: LiveData<List<Post>> get() = _posts
 
     private val _userDetails = MutableLiveData<Map<String, User>>()
-    val userDetails: LiveData<Map<String, User>> get() = _userDetails
 
     companion object {
         val instance = Model()
@@ -31,11 +30,34 @@ class Model private constructor() {
         return firebase.getCurrentUser()
     }
 
+    fun getCurrentUserFromCache(): LiveData<User?> {
+        return db.userDao().getCurrentUser()  // Fetch the current user from Room
+    }
+
+    fun getCurrentUser(callback: (User?) -> Unit) {
+        getCurrentUserFromCache().observeForever { currentUser ->
+            if (currentUser != null) {
+                callback(currentUser)
+            } else {
+                val firebaseUser = getCurrentUser()
+                if (firebaseUser != null) {
+                    val newUser = User(firebaseUser.uid, firebaseUser.email ?: "", "ic_profile.png")
+                    setCurrentUser(newUser)
+                    callback(newUser)
+                } else {
+                    callback(null)
+                }
+            }
+        }
+    }
+
+
     fun login(email: String, password: String, context: Context, callback: (Boolean) -> Unit) {
         firebase.signIn(context, email, password) { success, user ->
             if (success && user != null) {
                 val newUser = User(user.uid, user.email ?: "", "ic_profile.png")
                 addUserToLocalAndFirebase(newUser)
+                setCurrentUser(newUser)
             }
             callback(success)
         }
@@ -44,23 +66,26 @@ class Model private constructor() {
     fun signup(email: String, password: String, context: Context, callback: (Boolean) -> Unit) {
         firebase.signUp(context, email, password) { success, user ->
             if (success && user != null) {
-                val newUser = User(user.uid, email, "ic_profile.png")
+                val newUser = User(user.uid, username = email, "ic_profile.png")
                 addUserToLocalAndFirebase(newUser)
+                setCurrentUser(newUser)
             }
             callback(success)
         }
     }
 
-    fun updateUserUsername(
-        userId: String,
-        newUsername: String,
-        context: Context,
-        callback: () -> Unit
-    ) {
-        FirebaseModel.updateUserUsername(context, userId, newUsername) { user ->
+    private fun setCurrentUser(user: User) {
+        executor.execute {
+            db.userDao().clearCurrentUser()
+            db.userDao().insertUser(user.copy(isCurrentUser = true))
+        }
+    }
+
+    fun updateUserUsername(userId: String, newUsername: String, context: Context, callback: () -> Unit) {
+        FirebaseModel.updateUserUsername(context, userId, newUsername) { updatedUser ->
             executor.execute {
-                if (user != null) {
-                    db.userDao().insertUser(user)
+                if (updatedUser != null) {
+                    db.userDao().insertUser(updatedUser)
                 }
                 handler.post {
                     callback()
@@ -80,14 +105,22 @@ class Model private constructor() {
     fun refreshAllUsers() {
         firebase.getAllUsers { users ->
             executor.execute {
-                users.forEach { db.userDao().insertUser(it) }
+                users.forEach { user ->
+                    val userToInsert = if (user.id == getCurrentUser()?.uid) {
+                        user.copy(isCurrentUser = true)
+                    } else {
+                        user.copy(isCurrentUser = false)
+                    }
+                    db.userDao().insertUser(userToInsert)
+                }
             }
         }
     }
 
-    fun getAllPosts(): LiveData<List<Post>> = db.postDao().getAllPosts()
 
-    fun getUserPosts(userId: String): LiveData<List<Post>> = db.postDao().getUserPosts(userId)
+    fun getAllPosts(): LiveData<List<PostWithUser>> = db.postDao().getAllPosts()
+
+    fun getUserPosts(userId: String): LiveData<List<PostWithUser>> = db.postDao().getUserPosts(userId)
 
     fun refreshPosts() {
         firebase.getAllPosts { posts, userIds ->
@@ -119,7 +152,7 @@ class Model private constructor() {
 
     fun deletePost(post: Post) {
         firebase.deletePostFromFirestore(post.id, {
-            executor.execute { db.postDao().deletePost(post) }
+            executor.execute { db.postDao().deletePost(post) } // Remove from Room
         }, {
             Log.e("Model", "Failed to delete post from Firestore")
         })
@@ -131,7 +164,7 @@ class Model private constructor() {
                 if (imageUrl != null) {
                     val updatedPost = post.copy(imagePathUrl = imageUrl)
                     firebase.updatePostInFirestore(updatedPost, {
-                        executor.execute { db.postDao().updatePost(updatedPost) }
+                        executor.execute { db.postDao().updatePost(updatedPost) } // Update in Room
                         onSuccess()
                     }, {
                         Log.e("Model", "Failed to update post in Firestore")
@@ -144,7 +177,7 @@ class Model private constructor() {
             }
         } else {
             firebase.updatePostInFirestore(post, {
-                executor.execute { db.postDao().updatePost(post) }
+                executor.execute { db.postDao().updatePost(post) } // Update in Room
                 onSuccess()
             }, {
                 Log.e("Model", "Failed to update post in Firestore")
@@ -152,6 +185,5 @@ class Model private constructor() {
             })
         }
     }
-
-
 }
+

@@ -75,19 +75,21 @@ class UploadPostFragment : Fragment() {
         val title = binding.titleEditText.text.toString().trim()
         val description = binding.descriptionEditText.text.toString().trim()
         val selectedImageUri = imageUri
-        val currentUser = Model.instance.getCurrentUser()
+        Model.instance.getCurrentUser { currentUser ->
+            if (title.isNotEmpty() && selectedImageUri != null && currentUser != null) {
+                val post = Post(
+                    id = System.currentTimeMillis().toString(),
+                    title = title,
+                    description = description,
+                    imagePathUrl = "",
+                    userId = currentUser.id
+                )
 
-        if (title.isNotEmpty() && selectedImageUri != null && currentUser != null) {
-            val post = Post(
-                id = System.currentTimeMillis().toString(),
-                title = title,
-                description = description,
-                imagePathUrl = "",
-                userId = currentUser.uid
-            )
-
-            postViewModel.addPost(post, selectedImageUri)
-            findNavController().navigateUp()
+                postViewModel.addPost(post, selectedImageUri)
+                findNavController().navigateUp()
+            } else {
+                Log.e("UploadPost", "No current user found.")
+            }
         }
     }
 }

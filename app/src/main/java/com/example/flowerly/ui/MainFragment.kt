@@ -46,9 +46,5 @@ class MainFragment : Fragment() {
         postViewModel.posts.observe(viewLifecycleOwner) { postList ->
             adapter.updatePosts(postList)
         }
-
-        postViewModel.userDetails.observe(viewLifecycleOwner) { userMap ->
-            adapter.updateUsers(userMap)
-        }
     }
 }
