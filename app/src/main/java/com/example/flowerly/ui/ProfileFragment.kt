@@ -19,14 +19,11 @@ import com.example.flowerly.model.FirebaseModel
 import com.example.flowerly.model.Model
 import com.example.flowerly.model.User
 import com.example.flowerly.viewmodel.PostViewModel
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment() {
     private val postViewModel: PostViewModel by viewModels()
     private val firebaseModel = FirebaseModel
-
     private lateinit var adapter: PostAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var userNameTextView: TextView
@@ -48,7 +45,7 @@ class ProfileFragment : Fragment() {
         recyclerView = view.findViewById(R.id.user_posts_recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        adapter = PostAdapter(mutableListOf(),emptyMap(), onDelete = { post ->
+        adapter = PostAdapter(mutableListOf(), emptyMap(), onDelete = { post ->
             postViewModel.deletePost(post)
         }, onEdit = { post ->
             val action = MainFragmentDirections.actionMainFragmentToEditPostFragment(post)
@@ -61,14 +58,15 @@ class ProfileFragment : Fragment() {
         saveUsernameButton = view.findViewById(R.id.save_username_button)
         logoutButton = view.findViewById(R.id.logout)
 
-        Firebase.auth.currentUser?.uid?.let {
-            FirebaseModel.getUserById(it) { user ->
-                this.user = user
-                if (user != null) {
-                    updateUI(user)
-                } else {
-                    findNavController().navigate(R.id.loginFragment)
+        Model.instance.getCurrentUser { currentUser ->
+            currentUser?.let {
+                user = it
+                updateUI(it)
+                postViewModel.getUserPosts(it.id).observe(viewLifecycleOwner) { postList ->
+                    adapter.updatePosts(postList)
                 }
+            } ?: run {
+                findNavController().navigate(R.id.loginFragment)
             }
         }
 
@@ -98,15 +96,5 @@ class ProfileFragment : Fragment() {
     private fun updateUI(user: User) {
         userNameTextView.text = user.username
         editUsername.setText(user.username)
-
-        postViewModel.getUserPosts(user.id).observe(viewLifecycleOwner) { postList ->
-            adapter = PostAdapter(mutableListOf(),emptyMap(), onDelete = { post ->
-                postViewModel.deletePost(post)
-            }, onEdit = { post ->
-                val action = MainFragmentDirections.actionMainFragmentToEditPostFragment(post)
-                findNavController().navigate(action)
-            })
-            recyclerView.adapter = adapter
-        }
     }
 }
