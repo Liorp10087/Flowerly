@@ -9,15 +9,12 @@ plugins {
     id("kotlin-parcelize")
 }
 
-val keystoreFile = project.rootProject.file("apikey.properties")
-val properties = Properties()
-properties.load(keystoreFile.inputStream())
-
-//return empty key in case something goes wrong
-val apiKey = properties.getProperty("OPENAI_API_KEY")
-
-if (apiKey.isNullOrEmpty()) {
-    throw GradleException("OPENAI_API_KEY not found in apikey.properties. Please add it.")
+val apiKey: String = if (project.rootProject.file("apikey.properties").exists()) {
+    val properties = Properties()
+    properties.load(project.rootProject.file("apikey.properties").inputStream())
+    properties.getProperty("OPENAI_API_KEY", "")
+} else {
+    ""
 }
 
 android {
