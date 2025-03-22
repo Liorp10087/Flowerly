@@ -9,6 +9,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.example.flowerly.dao.AppLocalDatabase
 import com.google.firebase.auth.FirebaseUser
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
 class Model private constructor() {
@@ -26,41 +28,54 @@ class Model private constructor() {
         val instance = Model()
     }
 
-    fun getCurrentUser(): FirebaseUser? {
+    private suspend fun getCurrentUserFromFirebase(): User? {
         return firebase.getCurrentUser()
     }
 
-    fun getCurrentUserFromCache(): LiveData<User?> {
+    private fun getCurrentUserFromCache(): LiveData<User?> {
         return db.userDao().getCurrentUser()
     }
 
-    fun getCurrentUser(callback: (User?) -> Unit) {
-        getCurrentUserFromCache().observeForever { currentUser ->
-            if (currentUser != null) {
-                callback(currentUser)
-            } else {
-                val firebaseUser = getCurrentUser()
-                if (firebaseUser != null) {
-                    val newUser = User(firebaseUser.uid, firebaseUser.email ?: "", "ic_profile.png")
-                    setCurrentUser(newUser)
-                    callback(newUser)
+
+    suspend fun getCurrentUser(): LiveData<User?> {
+        val liveData = MutableLiveData<User?>()
+
+        withContext(Dispatchers.IO) {
+            val currentUser = getCurrentUserFromCache().value
+
+            withContext(Dispatchers.Main) {
+                if (currentUser != null) {
+                    liveData.value = currentUser
                 } else {
-                    callback(null)
+                    val firebaseUser = getCurrentUserFromFirebase()
+                    if (firebaseUser != null) {
+                        setCurrentUser(firebaseUser)
+                        liveData.value = firebaseUser
+                    } else {
+                        liveData.value = null
+                    }
                 }
             }
         }
+
+        return liveData
     }
 
 
     fun login(email: String, password: String, context: Context, callback: (Boolean) -> Unit) {
         firebase.signIn(context, email, password) { success, user ->
             if (success && user != null) {
-                val newUser = User(user.uid, user.email ?: "", "ic_profile.png")
-                addUserToLocalAndFirebase(newUser)
-                setCurrentUser(newUser)
+                firebase.getUserById(user.uid) { fetchedUser ->
+                    val username = fetchedUser?.username ?: email
+                    val newUser = User(user.uid, user.email ?: "", profilePictureUrl = "ic_profile.png", username = username)
+                    addUserToLocalAndFirebase(newUser)
+                    setCurrentUser(newUser)
+                }
             }
             callback(success)
         }
+
+
     }
 
     fun signup(email: String, password: String, context: Context, callback: (Boolean) -> Unit) {
@@ -106,7 +121,8 @@ class Model private constructor() {
         firebase.getAllUsers { users ->
             executor.execute {
                 users.forEach { user ->
-                    val userToInsert = if (user.id == getCurrentUser()?.uid) {
+                    val currentUser = getCurrentUserFromCache().value
+                    val userToInsert = if (user.id == currentUser?.id) {
                         user.copy(isCurrentUser = true)
                     } else {
                         user.copy(isCurrentUser = false)
@@ -116,6 +132,7 @@ class Model private constructor() {
             }
         }
     }
+
 
 
     fun getAllPosts(): LiveData<List<PostWithUser>> = db.postDao().getAllPosts()

@@ -11,6 +11,7 @@ import com.google.firebase.firestore.FirebaseFirestoreSettings
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.tasks.await
 
 object FirebaseModel {
     private val db by lazy { Firebase.firestore }
@@ -43,7 +44,24 @@ object FirebaseModel {
         }
     }
 
-    fun getCurrentUser(): FirebaseUser? = auth.currentUser
+    suspend fun getCurrentUser(): User? {
+        val firebaseUser = auth.currentUser
+        return firebaseUser?.let {
+            try {
+                val document = db.collection(USERS_COLLECTION).document(it.uid).get().await()
+                val user = document.toObject(User::class.java)?.copy(
+                    email = it.email ?: "",
+                    username = document.getString("username") ?: it.email ?: "",
+                    profilePictureUrl = document.getString("profilePictureUrl") ?: "ic_profile.png",
+                )
+                user
+            } catch (e: Exception) {
+                null
+            }
+        } ?: null
+    }
+
+
 
     fun signIn(
         context: Context,

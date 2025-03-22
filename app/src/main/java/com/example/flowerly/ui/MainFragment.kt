@@ -13,11 +13,14 @@ import com.example.flowerly.PostAdapter
 import com.example.flowerly.R
 import com.example.flowerly.model.Model
 import com.example.flowerly.viewmodel.PostViewModel
+import com.example.flowerly.viewmodel.UserViewModel
 
 class MainFragment : Fragment() {
     private lateinit var adapter: PostAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var postViewModel: PostViewModel
+    private lateinit var userViewModel: UserViewModel
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -31,7 +34,7 @@ class MainFragment : Fragment() {
         recyclerView = view.findViewById(R.id.recycler_view)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        adapter = PostAdapter(mutableListOf(),emptyMap(), onDelete = { post ->
+        adapter = PostAdapter(mutableListOf(), onDelete = { post ->
             postViewModel.deletePost(post)
         }, onEdit = { post ->
             val action = MainFragmentDirections.actionMainFragmentToEditPostFragment(post)
@@ -39,9 +42,16 @@ class MainFragment : Fragment() {
         })
         recyclerView.adapter = adapter
 
+        postViewModel = ViewModelProvider(this).get(PostViewModel::class.java)
+        userViewModel = ViewModelProvider(this).get(UserViewModel::class.java)
+
         Model.instance.refreshPosts()
 
-        postViewModel = ViewModelProvider(this).get(PostViewModel::class.java)
+        userViewModel.currentUser.observe(viewLifecycleOwner) { currentUser ->
+            currentUser?.let {
+                adapter.updateCurrentUser(it)
+            }
+        }
 
         postViewModel.posts.observe(viewLifecycleOwner) { postList ->
             adapter.updatePosts(postList)

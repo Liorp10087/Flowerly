@@ -3,6 +3,7 @@ package com.example.flowerly
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.flowerly.databinding.ActivityMainBinding
@@ -10,6 +11,7 @@ import com.example.flowerly.model.FirebaseModel
 import com.example.flowerly.model.Model
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -37,8 +39,12 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        if (FirebaseModel.getCurrentUser() == null) {
-            navController?.navigate(R.id.loginFragment)
+        lifecycleScope.launch {
+            val currentUser = FirebaseModel.getCurrentUser()
+
+            if (currentUser == null) {
+                navController?.navigate(R.id.loginFragment)
+            }
         }
 
         navController?.let {

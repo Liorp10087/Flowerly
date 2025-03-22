@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.flowerly.model.Model
 import com.example.flowerly.model.User
@@ -12,10 +13,21 @@ import kotlinx.coroutines.launch
 
 class UserViewModel(application: Application) : AndroidViewModel(application) {
 
-    val currentUser: LiveData<User?> = Model.instance.getCurrentUserFromCache()
+    private val _currentUser = MutableLiveData<User?>()
+    val currentUser: LiveData<User?> get() = _currentUser
 
-    fun getCurrentUser(callback: (User?) -> Unit) {
-        Model.instance.getCurrentUser(callback)
+    init {
+        loadCurrentUser()
+    }
+    fun loadCurrentUser() {
+        viewModelScope.launch {
+            val user = Model.instance.getCurrentUser()
+            _currentUser.value = user.value
+        }
+    }
+
+    fun updateCurrentUser(user: User) {
+        _currentUser.value = user
     }
 
     fun updateUserUsername(userId: String, newUsername: String, context: Context, callback: () -> Unit) {

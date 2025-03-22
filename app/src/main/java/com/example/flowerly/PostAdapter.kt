@@ -7,7 +7,6 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.example.flowerly.model.FirebaseModel
 import com.example.flowerly.model.Post
 import com.example.flowerly.model.PostWithUser
 import com.example.flowerly.model.User
@@ -15,7 +14,7 @@ import com.example.flowerly.utils.loadImageFromFirebase
 
 class PostAdapter(
     private val posts: MutableList<PostWithUser>,
-    private var userMap: Map<String, User> = emptyMap(),
+    private var currentUser: User? = null,
     private val onDelete: (Post) -> Unit,
     private val onEdit: (Post) -> Unit
 ) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
@@ -51,9 +50,7 @@ class PostAdapter(
         holder.titleText.text = post.title
         holder.descText.text = post.description
 
-        val currentUserId = FirebaseModel.getCurrentUser()?.uid
-
-        if (post.userId == currentUserId) {
+        if (post.userId == currentUser?.id) {
             holder.deleteButton.visibility = View.VISIBLE
             holder.editButton.visibility = View.VISIBLE
         } else {
@@ -79,9 +76,8 @@ class PostAdapter(
         notifyDataSetChanged()
     }
 
-    fun updateUsers(newUserMap: Map<String, User>) {
-        this.userMap = newUserMap
+    fun updateCurrentUser(currentUser: User?) {
+        this.currentUser = currentUser
         notifyDataSetChanged()
     }
-
 }
