@@ -6,16 +6,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.example.flowerly.R
 import com.example.flowerly.databinding.FragmentSignupBinding
-import com.example.flowerly.model.Model
+import com.example.flowerly.viewmodel.UserViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class SignupFragment : Fragment() {
 
     private lateinit var binding: FragmentSignupBinding
     private lateinit var bottomNavigation: BottomNavigationView
+    private val userViewModel: UserViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -34,6 +36,15 @@ class SignupFragment : Fragment() {
         binding.btnSignup.setOnClickListener {
             handleSignup()
         }
+
+        userViewModel.signupStatus.observe(viewLifecycleOwner) { success ->
+            if (success) {
+                showBottomNav()
+                navigateToMain()
+            } else {
+                showToast("Signup failed")
+            }
+        }
     }
 
     private fun handleSignup() {
@@ -50,22 +61,11 @@ class SignupFragment : Fragment() {
             return
         }
 
-        performSignup(email, password)
+        userViewModel.signup(email, password, requireContext())
     }
 
     private fun isValidEmail(email: String): Boolean {
         return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
-    }
-
-    private fun performSignup(email: String, password: String) {
-        Model.instance.signup(email, password, requireContext()) { success ->
-            if (success) {
-                showBottomNav()
-                navigateToMain()
-            } else {
-                showToast("Signup failed")
-            }
-        }
     }
 
     private fun showBottomNav() {

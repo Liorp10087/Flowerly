@@ -18,6 +18,12 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     private val _currentUser = MutableLiveData<User?>()
     val currentUser: LiveData<User?> get() = _currentUser
 
+    private val _loginStatus = MutableLiveData<Boolean>()
+    val loginStatus: LiveData<Boolean> get() = _loginStatus
+
+    private val _signupStatus = MutableLiveData<Boolean>()
+    val signupStatus: LiveData<Boolean> get() = _signupStatus
+
     init {
         loadCurrentUser()
     }
@@ -73,4 +79,17 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
     fun refreshAllUsers() {
         Model.instance.refreshAllUsers()
     }
+
+    fun login(email: String, password: String, context: Context) {
+        Model.instance.login(email, password, context) { success ->
+            _loginStatus.value = success
+        }
+    }
+
+    fun signup(email: String, password: String, context: Context) {
+        Model.instance.signup(email, password, context) { success ->
+            _signupStatus.value = success
+        }
+    }
+
 }

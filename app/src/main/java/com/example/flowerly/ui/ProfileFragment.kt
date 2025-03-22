@@ -62,7 +62,7 @@ class ProfileFragment : Fragment() {
         setupRecyclerView()
         setupListeners()
 
-        Model.instance.refreshPosts()
+        postViewModel.refreshPosts()
         userViewModel.loadCurrentUser()
 
         userViewModel.currentUser.observe(viewLifecycleOwner) { currentUser ->
@@ -88,7 +88,7 @@ class ProfileFragment : Fragment() {
         editUsername = view.findViewById(R.id.edit_username)
         editUsernameLayout = view.findViewById(R.id.edit_username_layout)
         saveUsernameButton = view.findViewById(R.id.save_username_button)
-        logoutButton = view.findViewById<ImageView>(R.id.logout_icon)
+        logoutButton = view.findViewById(R.id.logout_icon)
     }
 
     private fun setupRecyclerView() {

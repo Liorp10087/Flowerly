@@ -158,7 +158,7 @@ class Model private constructor() {
 
     fun deletePost(post: Post) {
         firebase.deletePostFromFirestore(post.id, {
-            executor.execute { db.postDao().deletePost(post) } // Remove from Room
+            executor.execute { db.postDao().deletePost(post) }
         }, {
             Log.e("Model", "Failed to delete post from Firestore")
         })
@@ -169,27 +169,25 @@ class Model private constructor() {
             firebase.uploadImage(imageUri) { imageUrl ->
                 if (imageUrl != null) {
                     val updatedPost = post.copy(imagePathUrl = imageUrl)
-                    firebase.updatePostInFirestore(updatedPost, {
-                        executor.execute { db.postDao().updatePost(updatedPost) } // Update in Room
-                        onSuccess()
-                    }, {
-                        Log.e("Model", "Failed to update post in Firestore")
-                        onFailure()
-                    })
+                    updatePostData(updatedPost, onSuccess, onFailure)
                 } else {
                     Log.e("Model", "Failed to upload image")
                     onFailure()
                 }
             }
         } else {
-            firebase.updatePostInFirestore(post, {
-                executor.execute { db.postDao().updatePost(post) } // Update in Room
-                onSuccess()
-            }, {
-                Log.e("Model", "Failed to update post in Firestore")
-                onFailure()
-            })
+            updatePostData(post, onSuccess, onFailure)
         }
+    }
+
+    private fun updatePostData(post: Post, onSuccess: () -> Unit, onFailure: () -> Unit) {
+        firebase.updatePostInFirestore(post, {
+            executor.execute { db.postDao().updatePost(post) }
+            onSuccess()
+        }, {
+            Log.e("Model", "Failed to update post in Firestore")
+            onFailure()
+        })
     }
 
     fun updateProfilePicture(user: User, imageUri: Uri?, onSuccess: () -> Unit, onFailure: () -> Unit) {
