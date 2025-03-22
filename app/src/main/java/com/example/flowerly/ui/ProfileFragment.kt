@@ -39,7 +39,7 @@ class ProfileFragment : Fragment() {
     private lateinit var editUsername: TextInputEditText
     private lateinit var editUsernameLayout: TextInputLayout
     private lateinit var saveUsernameButton: Button
-    private lateinit var logoutButton: Button
+    private lateinit var logoutButton: ImageView
 
     private var user: User? = null
 
@@ -88,7 +88,7 @@ class ProfileFragment : Fragment() {
         editUsername = view.findViewById(R.id.edit_username)
         editUsernameLayout = view.findViewById(R.id.edit_username_layout)
         saveUsernameButton = view.findViewById(R.id.save_username_button)
-        logoutButton = view.findViewById(R.id.logout)
+        logoutButton = view.findViewById<ImageView>(R.id.logout_icon)
     }
 
     private fun setupRecyclerView() {
