@@ -1,12 +1,16 @@
 package com.example.flowerly.ui
 
+import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -16,21 +20,33 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.flowerly.PostAdapter
 import com.example.flowerly.R
 import com.example.flowerly.model.FirebaseModel
-import com.example.flowerly.model.Model
 import com.example.flowerly.model.User
+import com.example.flowerly.utils.loadImageFromFirebase
 import com.example.flowerly.viewmodel.PostViewModel
+import com.example.flowerly.viewmodel.UserViewModel
 import kotlinx.coroutines.launch
 
 class ProfileFragment : Fragment() {
     private val postViewModel: PostViewModel by viewModels()
+    private val userViewModel: UserViewModel by viewModels()
+
     private val firebaseModel = FirebaseModel
     private lateinit var adapter: PostAdapter
     private lateinit var recyclerView: RecyclerView
-    private lateinit var userNameTextView: TextView
+    private lateinit var emailTextView: TextView
+    private lateinit var profileImageView: ImageView
     private lateinit var editUsername: EditText
     private lateinit var saveUsernameButton: Button
     private lateinit var logoutButton: Button
+    private lateinit var changeProfileButton: Button
+
     private var user: User? = null
+
+    private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        uri?.let {
+            updateProfilePicture(it)
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -53,12 +69,15 @@ class ProfileFragment : Fragment() {
         })
         recyclerView.adapter = adapter
 
-        userNameTextView = view.findViewById(R.id.profile_name)
+        emailTextView = view.findViewById(R.id.profile_name)
+        profileImageView = view.findViewById(R.id.profile_image_view)
         editUsername = view.findViewById(R.id.edit_username)
         saveUsernameButton = view.findViewById(R.id.save_username_button)
         logoutButton = view.findViewById(R.id.logout)
+        changeProfileButton = view.findViewById(R.id.change_profile_button)
 
-        Model.instance.getCurrentUser { currentUser ->
+
+        userViewModel.getCurrentUser { currentUser ->
             currentUser?.let {
                 user = it
                 updateUI(it)
@@ -83,18 +102,36 @@ class ProfileFragment : Fragment() {
         logoutButton.setOnClickListener {
             firebaseModel.signOut()
         }
+
+        changeProfileButton.setOnClickListener {
+            pickImage.launch("image/*")
+        }
     }
 
     private fun updateUsername(newUsername: String) {
         user?.let {
-            Model.instance.updateUserUsername(it.id, newUsername, requireContext()) {
+           userViewModel.updateUserUsername(it.id, newUsername, requireContext()) {
                 updateUI(it)
             }
         }
     }
+    private fun updateProfilePicture(imageUri: Uri) {
+        user?.let {
+            userViewModel.updateProfilePicture(it, imageUri, {
+                loadImageFromFirebase(it.profilePictureUrl, view?.findViewById(R.id.profile_image_view)!!)
+                updateUI(it)
+            }, {
+            })
+        }
+    }
 
-    private fun updateUI(user: User) {
-        userNameTextView.text = user.username
-        editUsername.setText(user.username)
+    private fun updateUI(user: User?) {
+        user?.let {
+            emailTextView.text = it.email
+            editUsername.setText(it.username)
+            loadImageFromFirebase(it.profilePictureUrl, view?.findViewById(R.id.profile_image_view)!!)
+        } ?: run {
+            Log.e("ProfileFragment", "User is null. Cannot update UI.")
+        }
     }
 }

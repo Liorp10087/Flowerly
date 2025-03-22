@@ -6,9 +6,8 @@
     android:padding="20dp"
     android:gravity="center">
 
-    <!-- Profile Image -->
     <ImageView
-        android:id="@+id/profile_image"
+        android:id="@+id/profile_image_view"
         android:layout_width="100dp"
         android:layout_height="100dp"
         android:src="@drawable/ic_profile"
@@ -17,7 +16,14 @@
         android:clickable="true"
         android:focusable="true"/>
 
-    <!-- Username Display -->
+    <Button
+        android:id="@+id/change_profile_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Change Profile Picture"
+        android:layout_marginBottom="16dp"
+        android:layout_gravity="center"/>
+
     <Button
         android:id="@+id/logout"
         android:layout_width="wrap_content"
@@ -25,17 +31,15 @@
         android:text="Logout"
         android:layout_marginBottom="16dp" />
 
-    <!-- Username Display -->
     <TextView
         android:id="@+id/profile_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="8dp"
-        android:text="Username"
+        android:text="Email"
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- Edit Username Input -->
     <EditText
         android:id="@+id/edit_username"
         android:layout_width="match_parent"
@@ -43,7 +47,6 @@
         android:hint="Enter new username"
         android:layout_marginBottom="8dp" />
 
-    <!-- Save Username Button -->
     <Button
         android:id="@+id/save_username_button"
         android:layout_width="wrap_content"
@@ -51,7 +54,6 @@
         android:text="Save Username"
         android:layout_marginBottom="16dp" />
 
-    <!-- User Posts Title -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -60,7 +62,6 @@
         android:textStyle="bold"
         android:layout_marginBottom="8dp" />
 
-    <!-- RecyclerView for User's Posts -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/user_posts_recycler_view"
         android:layout_width="match_parent"
